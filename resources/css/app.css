@@ -1,0 +1,6 @@
+
+@import "tailwindcss";
+
+/* Detectar las clases Tailwind utilizadas en las vistas Blade */
+@source "../views/**/*.blade.php";
+@source "../js/**/*.js";
