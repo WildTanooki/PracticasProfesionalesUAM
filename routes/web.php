@@ -19,15 +19,30 @@ Route::middleware('auth')->group(function () {
     // Dashboard del estudiante
     Route::get('/estudiante/home', function () {
         abort_unless(auth()->user()->rol === 'Estudiante', 403);
-
         return view('estudiante.home');
     })->name('estudiante.home');
 
+    // Dashboard del coordinador
     Route::get('/coordinador/home', function () {
         abort_unless(auth()->user()->rol === 'Coordinador', 403);
-
         return view('coordinador.home');
     })->name('coordinador.home');
+
+    // placeholder para rutas provisionales del coordinador
+    $rutasProvisionales = [
+        'inicio',
+        'cartas',
+        'recomendaciones',
+        'formatos',
+        'alertas',
+        'reglas',
+    ];
+
+    foreach ($rutasProvisionales as $ruta) {
+        Route::get("/coordinador/{$ruta}", function () {
+            return redirect()->route('coordinador.home');
+        })->name($ruta);
+    }
 
     // Cerrar sesión
     Route::post('/logout', [AuthController::class, 'cerrarSesion'])
