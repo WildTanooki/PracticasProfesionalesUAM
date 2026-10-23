@@ -2,7 +2,9 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+//Controladores
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\FormatoController;
 
 // Mostrar el formulario de inicio de sesión
 Route::get('/login', [AuthController::class, 'mostrarLogin'])
@@ -27,6 +29,27 @@ Route::middleware('auth')->group(function () {
         return view('coordinador.home');
     })->name('coordinador.home');
 
+    //rutas para el manejo de formatos del coordinador
+    Route::get('/coordinador/formatos', [
+        FormatoController::class,
+        'index'
+        ])->name('coordinador.formatos');
+        
+    Route::post('/coordinador/formatos', [
+        FormatoController::class,
+        'store'
+    ])->name('coordinador.formatos.store');
+
+    Route::put('/coordinador/formatos/{idFormato}', [
+        FormatoController::class,
+        'update'
+    ])->name('coordinador.formatos.update');
+        
+    Route::get('/coordinador/formatos/{idFormato}/descargar', [
+        FormatoController::class,
+        'descargar'
+    ])->name('coordinador.formatos.descargar');
+
     // Rutas de provisionales para el estudiante
     $rutasEstudiante = [
         'aceptacion' => 'Cartas de aceptación',
@@ -46,7 +69,6 @@ Route::middleware('auth')->group(function () {
     $rutasCoordinador = [
         'aceptacion' => 'Cartas de aceptación',
         'recomendacion' => 'Cartas de recomendación',
-        'formatos' => 'Subir formatos de prácticas',
         'alertas' => 'Alertas y riesgos',
         'reglas' => 'Reglas parametrizables',
     ];
