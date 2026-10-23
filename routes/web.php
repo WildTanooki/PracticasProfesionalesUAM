@@ -1,4 +1,3 @@
-
 <?php
 
 use Illuminate\Http\Request;
@@ -28,20 +27,35 @@ Route::middleware('auth')->group(function () {
         return view('coordinador.home');
     })->name('coordinador.home');
 
-    // placeholder para rutas provisionales del coordinador
-    $rutasProvisionales = [
-        'inicio',
-        'cartas',
-        'recomendaciones',
-        'formatos',
-        'alertas',
-        'reglas',
+    // Rutas de provisionales para el estudiante
+    $rutasEstudiante = [
+        'aceptacion' => 'Cartas de aceptación',
+        'recomendacion' => 'Cartas de recomendación',
+        'formatos' => 'Descargar formatos de prácticas',
+        'documentos' => 'Subir documentos pendientes',
     ];
+    foreach ($rutasEstudiante as $ruta => $descripcion) {
+        Route::get("/estudiante/{$ruta}", function () {
+            abort_unless(auth()->user()->rol === 'Estudiante', 403);
 
-    foreach ($rutasProvisionales as $ruta) {
+            return redirect()->route('estudiante.home');
+        })->name("estudiante.{$ruta}");
+    }
+
+    // Rutas de provisionales para el coordinador
+    $rutasCoordinador = [
+        'aceptacion' => 'Cartas de aceptación',
+        'recomendacion' => 'Cartas de recomendación',
+        'formatos' => 'Subir formatos de prácticas',
+        'alertas' => 'Alertas y riesgos',
+        'reglas' => 'Reglas parametrizables',
+    ];
+    foreach ($rutasCoordinador as $ruta => $descripcion) {
         Route::get("/coordinador/{$ruta}", function () {
+            abort_unless(auth()->user()->rol === 'Coordinador', 403);
+
             return redirect()->route('coordinador.home');
-        })->name($ruta);
+        })->name("coordinador.{$ruta}");
     }
 
     // Cerrar sesión
