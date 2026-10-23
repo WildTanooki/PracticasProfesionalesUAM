@@ -1,4 +1,4 @@
-<aside class="flex min-h-screen w-56 shrink-0 flex-col bg-[#5b9eaa] py-3 text-white">
+<aside class="flex h-screen w-56 shrink-0 flex-col sticky top-0 bg-[#5b9eaa] py-3 text-white overflow-y-auto">
 
     {{-- Encabezado --}}
     <div class="mb-5 border-b border-white/20 px-5 py-4 text-center">
