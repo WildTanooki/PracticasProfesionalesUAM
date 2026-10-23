@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 //Controladores
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\FormatoController;
+use App\Http\Controllers\Estudiante\DashboardController;
 
 // Mostrar el formulario de inicio de sesión
 Route::get('/login', [AuthController::class, 'mostrarLogin'])
@@ -20,7 +21,8 @@ Route::middleware('auth')->group(function () {
     // Dashboard del estudiante
     Route::get('/estudiante/home', function () {
         abort_unless(auth()->user()->rol === 'Estudiante', 403);
-        return view('estudiante.home');
+        return app(\App\Http\Controllers\Estudiante\DashboardController::class)
+        ->index(request());
     })->name('estudiante.home');
 
     // Dashboard del coordinador

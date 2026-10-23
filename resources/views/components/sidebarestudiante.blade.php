@@ -49,7 +49,7 @@
             <a
                 href="{{ \Illuminate\Support\Facades\Route::has($item['ruta'])
                     ? route($item['ruta'])
-                    : route('coordinador.home') }}"
+                    : route('estudiante.home') }}"
                 @if ($activo)
                     aria-current="page"
                 @endif
