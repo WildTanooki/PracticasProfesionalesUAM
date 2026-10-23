@@ -37,6 +37,11 @@
                 'texto' => 'Alertas y riesgos',
                 'icono' => '⚠',
             ],
+            [
+                'ruta' => 'coordinador.reglas',
+                'texto' => 'Reglas parametrizables',
+                'icono' => '📋',
+            ],
         ];
     @endphp
 

@@ -35,15 +35,7 @@
             <main class="mx-auto max-w-7xl px-6 py-8">
 
                 <section class="mb-8">
-                    <p class="text-sm font-medium text-[#397783]">
-                        Coordinación Académica
-                    </p>
-
-                    <h2 class="mt-2 text-3xl font-bold tracking-tight">
-                        Panel principal
-                    </h2>
-
-                    <p class="mt-2 text-slate-600">
+                    <p class="mt-1 text-slate-600">
                         Bienvenido/a, {{ auth()->user()->nombre }}.
                         Desde aquí podrás gestionar las prácticas profesionales.
                     </p>
