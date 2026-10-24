@@ -92,6 +92,18 @@ Route::middleware('auth')->group(function () {
         CartaRecomendacionController::class,
         'destroy'
     ])->name('estudiante.recomendacion.eliminar');
+    
+    // Rutas para el manejo de formatos del estudiante
+    Route::get(
+            '/estudiante/formatos',
+            [FormatoController::class, 'formatosEstudiante']
+    )->name('estudiante.formatos');
+    
+    Route::get(
+        '/estudiante/formatos/{idFormato}/descargar',
+        [FormatoController::class, 'descargarEstudiante']
+    )->name('estudiante.formatos.descargar');
+  
 
     // Dashboard del coordinador
     Route::get('/coordinador/home', function () {
@@ -122,7 +134,6 @@ Route::middleware('auth')->group(function () {
 
     // Rutas de provisionales para el estudiante
     $rutasEstudiante = [
-        'formatos' => 'Descargar formatos de prácticas',
         'documentos' => 'Subir documentos pendientes',
     ];
     foreach ($rutasEstudiante as $ruta => $descripcion) {

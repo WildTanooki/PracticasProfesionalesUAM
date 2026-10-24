@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\CoordinacionAcademica;
+use App\Models\Estudiante;
 use App\Models\Formato;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -41,6 +42,7 @@ class FormatoController extends Controller
         );
     }
 
+ 
     /**
      * Registrar un nuevo formato.
      */
@@ -57,8 +59,13 @@ class FormatoController extends Controller
                 'string',
                 'max:50'
             ],
+            'descripcion' => [
+                'nullable',
+                'string',
+                'max:200'
+            ],
             'archivo' => [
-                'required',
+                'nullable',
                 'file',
                 'mimes:pdf,doc,docx',
                 'max:5120'
@@ -75,27 +82,43 @@ class FormatoController extends Controller
             auth()->user()->credencial
         )->firstOrFail();
 
-        // Guardar el archivo en el almacenamiento privado.
-        $archivo = $request->file('archivo');
-        $nombreOriginal = pathinfo(
-            $archivo->getClientOriginalName(),
-            PATHINFO_FILENAME
-        );
-        
-        $extension = $archivo->getClientOriginalExtension();
-        $nombreArchivo = $nombreOriginal . '_' . uniqid() . '.' . $extension;
-        $rutaArchivo = $archivo->storeAs('formatos', $nombreArchivo, 'local');
+        // Inicializar sin archivo.
+        $rutaArchivo = null;
+
+        // Guardar el archivo solo si se ha seleccionado uno.
+        if ($request->hasFile('archivo')) {
+            $archivo = $request->file('archivo');
+
+            $nombreOriginal = pathinfo(
+                $archivo->getClientOriginalName(),
+                PATHINFO_FILENAME
+            );
+
+            $extension = $archivo->getClientOriginalExtension();
+
+            $nombreArchivo = $nombreOriginal . '_' . uniqid() . '.' . $extension;
+
+            $rutaArchivo = $archivo->storeAs(
+                'formatos',
+                $nombreArchivo,
+                'local'
+            );
+        }
 
         try {
             Formato::create([
                 'nombreFormato' => $datos['nombreFormato'],
                 'archivo' => $rutaArchivo,
-                'estado' => $datos['estado'] ?? 'Activo', // Asigna Activo por defecto si viene vacío
+                'estado' => $datos['estado'] ?? 'Activo',
                 'ultimaEdicion' => now(),
                 'idCoordinador' => $coordinador->idCoordinador,
             ]);
         } catch (\Throwable $e) {
-            Storage::disk('local')->delete($rutaArchivo);
+            // Eliminar el archivo únicamente si se guardó uno.
+            if ($rutaArchivo !== null) {
+                Storage::disk('local')->delete($rutaArchivo);
+            }
+
             throw $e;
         }
 
@@ -106,6 +129,7 @@ class FormatoController extends Controller
                 'Formato registrado correctamente.'
             );
     }
+
 
     /**
      * Descargar un formato autorizado para la carrera.
@@ -156,6 +180,7 @@ public function update(Request $request, $idFormato)
 
     $datos = $request->validate([
         'nombreFormato' => ['required', 'string', 'max:50'],
+        'descripcion' => ['nullable', 'string', 'max:200'],
         'estado' => ['required', 'in:Activo,Inactivo'],
         'archivo' => ['nullable', 'file', 'mimes:pdf,doc,docx', 'max:5120'],
     ]);
@@ -172,6 +197,7 @@ public function update(Request $request, $idFormato)
         ->firstOrFail();
 
     $formato->nombreFormato = $datos['nombreFormato'];
+    $formato->descripcion = $datos['descripcion'];
     $formato->estado = $datos['estado'];
     $formato->ultimaEdicion = now();
 
@@ -224,4 +250,76 @@ public function update(Request $request, $idFormato)
         ->route('coordinador.formatos')
         ->with('success', 'Formato actualizado correctamente.');
 }
+
+        /**
+         * Mostrar únicamente los formatos activos de la carrera
+         * del estudiante autenticado.
+         */
+        public function formatosEstudiante()
+        {
+            abort_unless(
+                auth()->user()->rol === 'Estudiante',
+                403
+            );
+
+            // Obtener el estudiante y su carrera mediante el plan de estudios.
+            $estudiante = Estudiante::with('planEstudios')
+                ->where('credencial', auth()->user()->credencial)
+                ->firstOrFail();
+
+            $idCarrera = $estudiante->planEstudios?->idCarrera;
+
+            abort_if($idCarrera === null, 403, 'El estudiante no tiene una carrera asociada.');
+
+            // Mostrar solo formatos activos cuyos coordinadores
+            // pertenezcan a la carrera del estudiante.
+            $formatos = Formato::where('estado', 'Activo')
+                ->whereHas('coordinador', function ($consulta) use ($idCarrera) {
+                    $consulta->where('idCarrera', $idCarrera);
+                })
+                ->orderBy('nombreFormato')
+                ->get();
+
+            return view(
+                'estudiante.formatos',
+                compact('formatos')
+            );
+        }
+
+        /**
+         * Descargar un formato activo de la carrera del estudiante.
+         */
+        public function descargarEstudiante($idFormato)
+        {
+            abort_unless(
+                auth()->user()->rol === 'Estudiante',
+                403
+            );
+
+            $estudiante = Estudiante::with('planEstudios')
+                ->where('credencial', auth()->user()->credencial)
+                ->firstOrFail();
+
+            $idCarrera = $estudiante->planEstudios?->idCarrera;
+
+            abort_if($idCarrera === null, 403);
+
+            // Verificar nuevamente carrera y estado antes de descargar.
+            $formato = Formato::where('idFormato', $idFormato)
+                ->where('estado', 'Activo')
+                ->whereHas('coordinador', function ($consulta) use ($idCarrera) {
+                    $consulta->where('idCarrera', $idCarrera);
+                })
+                ->firstOrFail();
+
+            abort_unless(
+                $formato->archivo &&
+                Storage::disk('local')->exists($formato->archivo),
+                404
+            );
+
+            return Storage::disk('local')->download(
+                $formato->archivo
+            );
+        }
 }
