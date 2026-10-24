@@ -53,6 +53,12 @@ Route::middleware('auth')->group(function () {
          'update'
          ])->name('estudiante.aceptacion.update');
 
+    //eliminar carta de aprobación
+    Route::delete('/estudiante/aceptacion/{idCartaAprobacion}', [
+        CartaAprobacionController::class,
+        'destroy'
+    ])->name('estudiante.aceptacion.eliminar');
+
 
     // Dashboard del coordinador
     Route::get('/coordinador/home', function () {

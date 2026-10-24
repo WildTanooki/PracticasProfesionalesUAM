@@ -153,4 +153,33 @@ public function update(Request $request, $idCartaAprobacion)
         ->route('estudiante.aceptacion')
         ->with('success', 'La solicitud se actualizó correctamente.');
         }
+        
+        public function destroy($idCartaAprobacion)
+        {
+            $usuario = auth()->user();
+            
+            abort_unless($usuario->rol === 'Estudiante', 403);
+
+                $carta = CartaAprobacion::where(
+                    'credencial',
+                    $usuario->credencial
+                )->findOrFail($idCartaAprobacion);
+
+                abort_unless(
+                    $carta->estadoAprobacion === 'Pendiente',
+                    403
+                );
+
+                // Eliminar el archivo adjunto, si existe.
+                if ($carta->rutaArchivo) {
+                    \Illuminate\Support\Facades\Storage::disk('public')
+                        ->delete($carta->rutaArchivo);
+                }
+                
+                // Eliminar el registro de la base de datos.
+                $carta->delete();
+                return redirect()
+                ->route('estudiante.aceptacion')
+                ->with('success', 'La solicitud se eliminó correctamente.');
+                }
 }

@@ -198,6 +198,37 @@
                                                 </a>
                                             @endif
 
+                                           
+                                        {{-- Eliminar solicitud --}}
+                                        @if ($carta->estadoAprobacion === 'Pendiente')
+                                            <form action="{{ route('estudiante.aceptacion.eliminar', $carta->idCartaAprobacion) }}"
+                                                  method="POST"
+                                                  onsubmit="return confirm('¿Estás seguro de que deseas eliminar esta solicitud? Esta acción no se puede deshacer.');"
+                                                  class="inline">
+                                        
+                                                @csrf
+                                                @method('DELETE')
+                                        
+                                                <button type="submit"
+                                                        class="inline-flex items-center gap-1 font-medium text-red-600 hover:text-red-800 hover:underline">
+                                        
+                                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                                         class="h-4 w-4"
+                                                         fill="none"
+                                                         viewBox="0 0 24 24"
+                                                         stroke="currentColor"
+                                                         stroke-width="1.8">
+                                                        <path stroke-linecap="round"
+                                                              stroke-linejoin="round"
+                                                              d="M6 7h12m-10 0V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m2 0-1 13H9L8 7m3 4v5m2-5v5" />
+                                                    </svg>
+                                        
+                                                    Eliminar
+                                                </button>
+                                            </form>
+                                        @endif
+
+
                                         </td>
 
                                     </tr>
