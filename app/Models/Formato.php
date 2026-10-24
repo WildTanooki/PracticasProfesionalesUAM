@@ -20,6 +20,7 @@ class Formato extends Model
         'archivo',
         'nombreFormato',
         'estado',
+        'descripcion',
         'ultimaEdicion',
         'idCoordinador',
     ];
