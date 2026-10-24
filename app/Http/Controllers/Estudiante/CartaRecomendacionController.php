@@ -137,4 +137,42 @@ class CartaRecomendacionController extends Controller
             ->route('estudiante.recomendacion')
             ->with('success', 'La solicitud se eliminó correctamente.');
     }
+
+    public function verCarta($idCartaRecomendacion)
+    {
+        abort_unless(
+            auth()->check() && auth()->user()->rol === 'Estudiante',
+            403
+        );
+    
+        // Solo permite consultar solicitudes del estudiante autenticado.
+        $carta = CartaRecomendacion::where(
+            'idCartaRecomendacion',
+            $idCartaRecomendacion
+        )
+            ->where('credencialEstudiante', auth()->user()->credencial)
+            ->firstOrFail();
+    
+        // La carta debe estar disponible para su consulta.
+        abort_unless(
+            $carta->rutaCartaEmitida &&
+            Storage::disk('local')->exists($carta->rutaCartaEmitida),
+            404,
+            'La carta no está disponible.'
+        );
+    
+        $rutaArchivo = Storage::disk('local')->path(
+            $carta->rutaCartaEmitida
+        );
+    
+        // Abrir en el navegador cuando el formato sea compatible.
+        if (strtolower(pathinfo($rutaArchivo, PATHINFO_EXTENSION)) === 'pdf') {
+            return response()->file($rutaArchivo);
+        }
+    
+        // DOC y DOCX se entregan como descarga.
+        return Storage::disk('local')->download(
+            $carta->rutaCartaEmitida
+        );
+    }
 }

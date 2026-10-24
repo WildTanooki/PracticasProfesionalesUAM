@@ -134,7 +134,7 @@
 
                                                 $estilosEstado = [
                                                     'Pendiente' => 'bg-amber-50 text-amber-700 ring-amber-600/20',
-                                                    'Aprobado' => 'bg-emerald-50 text-emerald-700 ring-emerald-600/20',
+                                                    'Generada' => 'bg-emerald-50 text-emerald-700 ring-emerald-600/20',
                                                     'Rechazado' => 'bg-red-50 text-red-700 ring-red-600/20',
                                                     'A corregir' => 'bg-orange-50 text-orange-700 ring-orange-600/20',
                                                 ];
