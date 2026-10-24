@@ -7,6 +7,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\FormatoController;
 use App\Http\Controllers\Estudiante\DashboardController;
 use App\Http\Controllers\Estudiante\CartaAprobacionController;
+use App\Http\Controllers\Estudiante\CartaRecomendacionController;
 
 // Mostrar el formulario de inicio de sesión
 Route::get('/login', [AuthController::class, 'mostrarLogin'])
@@ -59,6 +60,38 @@ Route::middleware('auth')->group(function () {
         'destroy'
     ])->name('estudiante.aceptacion.eliminar');
 
+        // Listado de cartas de aprobación del estudiante.
+    Route::get('/estudiante/recomendacion', function () {
+        abort_unless(auth()->user()->rol === 'Estudiante', 403);
+        return app(\App\Http\Controllers\Estudiante\CartaRecomendacionController::class)
+        ->index();
+    })->name('estudiante.recomendacion');
+
+    //creación de carta de recomendación
+    Route::get('/estudiante/recomendacion/crear', [
+        CartaRecomendacionController::class, 'create'
+    ])->name('estudiante.recomendacion.crear');
+    
+    Route::post('/estudiante/recomendacion', [
+        CartaRecomendacionController::class, 'store'
+    ])->name('estudiante.recomendacion.store');
+
+    //editar carta de recomendación
+    Route::get('/estudiante/recomendacion/{idCartaRecomendacion}/editar', [
+        CartaRecomendacionController::class,
+        'edit'
+    ])->name('estudiante.recomendacion.editar');
+    
+    Route::put('/estudiante/recomendacion/{idCartaRecomendacion}', [
+         CartaRecomendacionController::class,
+         'update'
+         ])->name('estudiante.recomendacion.update');
+
+    //eliminar carta de recomendación
+    Route::delete('/estudiante/recomendacion/{idCartaRecomendacion}', [
+        CartaRecomendacionController::class,
+        'destroy'
+    ])->name('estudiante.recomendacion.eliminar');
 
     // Dashboard del coordinador
     Route::get('/coordinador/home', function () {
@@ -89,7 +122,6 @@ Route::middleware('auth')->group(function () {
 
     // Rutas de provisionales para el estudiante
     $rutasEstudiante = [
-        'recomendacion' => 'Cartas de recomendación',
         'formatos' => 'Descargar formatos de prácticas',
         'documentos' => 'Subir documentos pendientes',
     ];
