@@ -42,6 +42,18 @@ Route::middleware('auth')->group(function () {
         CartaAprobacionController::class, 'store'
     ])->name('estudiante.aceptacion.store');
 
+    //editar carta de aprobación
+    Route::get('/estudiante/aceptacion/{idCartaAprobacion}/editar', [
+        CartaAprobacionController::class,
+        'edit'
+    ])->name('estudiante.aceptacion.editar');
+    
+    Route::put('/estudiante/aceptacion/{idCartaAprobacion}', [
+         CartaAprobacionController::class,
+         'update'
+         ])->name('estudiante.aceptacion.update');
+
+
     // Dashboard del coordinador
     Route::get('/coordinador/home', function () {
         abort_unless(auth()->user()->rol === 'Coordinador', 403);

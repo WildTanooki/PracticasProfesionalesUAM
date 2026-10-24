@@ -136,7 +136,7 @@
                                                     'Pendiente' => 'bg-amber-50 text-amber-700 ring-amber-600/20',
                                                     'Aprobado' => 'bg-emerald-50 text-emerald-700 ring-emerald-600/20',
                                                     'Rechazado' => 'bg-red-50 text-red-700 ring-red-600/20',
-                                                    'Corrección requerida' => 'bg-orange-50 text-orange-700 ring-orange-600/20',
+                                                    'A corregir' => 'bg-orange-50 text-orange-700 ring-orange-600/20',
                                                 ];
 
                                                 $estilo = $estilosEstado[$estado]
@@ -179,6 +179,25 @@
                                                     Sin archivo
                                                 </span>
                                             @endif
+
+                                            {{-- Editar solicitud --}}
+                                            @if (in_array($carta->estadoAprobacion, ['Pendiente', 'A corregir']))
+                                                <a href="{{ route('estudiante.aceptacion.editar', $carta->idCartaAprobacion) }}"
+                                                class="inline-flex items-center gap-1 font-medium text-amber-600 hover:text-amber-800 hover:underline">
+                                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                                        class="h-4 w-4"
+                                                        fill="none"
+                                                        viewBox="0 0 24 24"
+                                                        stroke="currentColor"
+                                                        stroke-width="1.8">
+                                                        <path stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                        d="m16.862 4.487 2.651 2.651M8.5 15.5l8.362-8.362a1.875 1.875 0 0 1 2.652 2.652L11.15 18.154a4.5 4.5 0 0 1-1.897 1.13L5.5 20.5l1.216-3.753a4.5 4.5 0 0 1 1.784-1.247Z" />
+                                                    </svg>
+                                                    Editar
+                                                </a>
+                                            @endif
+
                                         </td>
 
                                     </tr>
