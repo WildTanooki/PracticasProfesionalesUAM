@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\FormatoController;
 use App\Http\Controllers\Estudiante\DashboardController;
+use App\Http\Controllers\Estudiante\CartaAprobacionController;
 
 // Mostrar el formulario de inicio de sesión
 Route::get('/login', [AuthController::class, 'mostrarLogin'])
@@ -24,6 +25,22 @@ Route::middleware('auth')->group(function () {
         return app(\App\Http\Controllers\Estudiante\DashboardController::class)
         ->index(request());
     })->name('estudiante.home');
+
+    // Listado de cartas de aprobación del estudiante.
+    Route::get('/estudiante/aceptacion', function () {
+        abort_unless(auth()->user()->rol === 'Estudiante', 403);
+        return app(\App\Http\Controllers\Estudiante\CartaAprobacionController::class)
+        ->index();
+    })->name('estudiante.aceptacion');
+
+    //creación de carta de aprobación
+    Route::get('/estudiante/aceptacion/crear', [
+        CartaAprobacionController::class, 'create'
+    ])->name('estudiante.aceptacion.crear');
+    
+    Route::post('/estudiante/aceptacion', [
+        CartaAprobacionController::class, 'store'
+    ])->name('estudiante.aceptacion.store');
 
     // Dashboard del coordinador
     Route::get('/coordinador/home', function () {
@@ -54,7 +71,6 @@ Route::middleware('auth')->group(function () {
 
     // Rutas de provisionales para el estudiante
     $rutasEstudiante = [
-        'aceptacion' => 'Cartas de aceptación',
         'recomendacion' => 'Cartas de recomendación',
         'formatos' => 'Descargar formatos de prácticas',
         'documentos' => 'Subir documentos pendientes',

@@ -22,6 +22,8 @@ class Pasantia extends Model
         'fechaInicio',
         'fechaFinEstimada',
         'idTutor',
+        'empresa',
+        'cargo',
     ];
 
     protected $casts = [

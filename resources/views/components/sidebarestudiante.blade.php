@@ -28,7 +28,7 @@
                 'icono' => '▱',
             ],
             [
-                'ruta' => 'estudiante.aprobacion',
+                'ruta' => 'estudiante.aceptacion',
                 'texto' => 'Enviar Carta de Aprobación',
                 'icono' => '▤',
             ],

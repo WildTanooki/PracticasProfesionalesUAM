@@ -14,7 +14,7 @@ class CartaAprobacion extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'idPasantia',
+        'credencial',
         'estadoAprobacion',
         'rutaArchivo',
         'fechaEmision',
@@ -27,6 +27,7 @@ class CartaAprobacion extends Model
         'apellidoTutor',
         'nombreTutor',
         'correoTutor',
+        'horasPropuestas',
     ];
 
     protected $casts = [
@@ -34,14 +35,4 @@ class CartaAprobacion extends Model
         'fechaInicio' => 'date',
         'fechaFin' => 'date',
     ];
-
-    // Una carta de aprobación pertenece a una pasantía.
-    public function pasantia(): BelongsTo
-    {
-        return $this->belongsTo(
-            Pasantia::class,
-            'idPasantia',
-            'idPasantia'
-        );
-    }
 }
