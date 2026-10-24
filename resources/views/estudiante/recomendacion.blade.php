@@ -197,22 +197,14 @@
 
                                                 {{-- Ver carta generada --}}
                                                 @if ($carta->estadoCarta === 'Generada' && $carta->rutaCartaEmitida)
-                                                    <a href="{{ asset('storage/' . $carta->rutaCartaEmitida) }}"
-                                                       target="_blank"
-                                                       rel="noopener noreferrer"
-                                                       class="inline-flex items-center gap-1 font-medium text-teal-700 hover:text-teal-900 hover:underline">
-                                                        <svg xmlns="http://www.w3.org/2000/svg"
-                                                             class="h-4 w-4"
-                                                             fill="none"
-                                                             viewBox="0 0 24 24"
-                                                             stroke="currentColor"
-                                                             stroke-width="1.8">
-                                                            <path stroke-linecap="round"
-                                                                  stroke-linejoin="round"
-                                                                  d="M2.25 12s3.5-6 9.75-6 9.75 6 9.75 6-3.5 6-9.75 6-9.75-6-9.75-6Z" />
-                                                            <circle cx="12" cy="12" r="2.5" />
-                                                        </svg>
-
+                                                    <a
+                                                        href="{{ route('estudiante.recomendacion.verCarta', [
+                                                            'idCartaRecomendacion' => $carta->idCartaRecomendacion
+                                                        ]) }}"
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        class="inline-flex items-center gap-1 font-medium text-teal-700 hover:text-teal-900 hover:underline"
+                                                    >
                                                         Ver carta
                                                     </a>
                                                 @elseif ($carta->estadoCarta === 'Generada')

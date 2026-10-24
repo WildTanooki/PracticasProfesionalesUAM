@@ -9,6 +9,8 @@ use App\Http\Controllers\Estudiante\DashboardController;
 use App\Http\Controllers\Estudiante\CartaAprobacionController;
 use App\Http\Controllers\Estudiante\CartaRecomendacionController;
 
+use App\Http\Controllers\Coordinador\CartaRecomendacionCoordinadorController;
+
 // Mostrar el formulario de inicio de sesión
 Route::get('/login', [AuthController::class, 'mostrarLogin'])
     ->name('login');
@@ -103,7 +105,17 @@ Route::middleware('auth')->group(function () {
         '/estudiante/formatos/{idFormato}/descargar',
         [FormatoController::class, 'descargarEstudiante']
     )->name('estudiante.formatos.descargar');
-  
+
+    Route::get(
+    '/estudiante/cartas-recomendacion/{idCartaRecomendacion}/ver',
+    [CartaRecomendacionController::class, 'verCarta']
+    )->middleware('auth')->name('estudiante.recomendacion.verCarta');
+
+
+    // -------------------------------------------
+    // |Aquí comienzan las rutas del coordinador.|
+    // -------------------------------------------
+
 
     // Dashboard del coordinador
     Route::get('/coordinador/home', function () {
@@ -132,6 +144,23 @@ Route::middleware('auth')->group(function () {
         'descargar'
     ])->name('coordinador.formatos.descargar');
 
+    //rutas para el manejo de cartas de recomendación del coordinador
+    Route::get('/coordinador/recomendacion', [
+        CartaRecomendacionCoordinadorController::class,
+        'index'
+    ])->name('coordinador.recomendacion');
+
+    //gestionar cartas de recomendacion
+    Route::get(
+    '/coordinador/cartas-recomendacion/{idCartaRecomendacion}',
+    [CartaRecomendacionCoordinadorController::class, 'show']
+    )->middleware('auth')->name('coordinador.recomendacion.show');
+
+    Route::post(
+    '/coordinador/cartas-recomendacion/{idCartaRecomendacion}/resolver',
+    [CartaRecomendacionCoordinadorController::class, 'resolver']
+    )->middleware('auth')->name('coordinador.recomendacion.resolver');
+
     // Rutas de provisionales para el estudiante
     $rutasEstudiante = [
         'documentos' => 'Subir documentos pendientes',
@@ -147,7 +176,6 @@ Route::middleware('auth')->group(function () {
     // Rutas de provisionales para el coordinador
     $rutasCoordinador = [
         'aceptacion' => 'Cartas de aceptación',
-        'recomendacion' => 'Cartas de recomendación',
         'alertas' => 'Alertas y riesgos',
         'reglas' => 'Reglas parametrizables',
     ];
