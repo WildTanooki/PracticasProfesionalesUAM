@@ -16,6 +16,7 @@ class Pasantia extends Model
 
     protected $fillable = [
         'idPractica',
+        'idCartaAprobacion',
         'estado',
         'horasRequeridas',
         'horasAcumuladas',
@@ -53,13 +54,13 @@ class Pasantia extends Model
         );
     }
 
-    // Una pasantía puede tener varias cartas de aprobación.
-    public function cartasAprobacion(): HasMany
+    // Carta de aprobación que originó esta pasantía.
+    public function cartaAprobacion(): BelongsTo
     {
-        return $this->hasMany(
+        return $this->belongsTo(
             CartaAprobacion::class,
-            'idPasantia',
-            'idPasantia'
+            'idCartaAprobacion',
+            'idCartaAprobacion'
         );
     }
 }

@@ -19,6 +19,8 @@ class Tutor extends Model
 
     protected $keyType = 'string';
 
+    public $timestamps = false;
+
     protected $fillable = [
         'idTutor',
         'credencial',

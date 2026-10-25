@@ -3,7 +3,9 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
 
 class CartaAprobacion extends Model
 {
@@ -35,4 +37,23 @@ class CartaAprobacion extends Model
         'fechaInicio' => 'date',
         'fechaFin' => 'date',
     ];
+    
+    // Pasantía creada a partir de esta carta, si existe.
+    public function pasantia(): HasOne
+    {
+        return $this->hasOne(
+            Pasantia::class,
+            'idCartaAprobacion',
+            'idCartaAprobacion'
+        );
+    }
+
+    public function usuario(): BelongsTo
+    {
+        return $this->belongsTo(
+            Usuario::class,
+            'credencial',
+            'credencial'
+        );
+    }
 }

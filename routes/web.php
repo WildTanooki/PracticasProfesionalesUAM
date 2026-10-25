@@ -5,10 +5,13 @@ use Illuminate\Support\Facades\Route;
 //Controladores
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\FormatoController;
+
 use App\Http\Controllers\Estudiante\DashboardController;
 use App\Http\Controllers\Estudiante\CartaAprobacionController;
 use App\Http\Controllers\Estudiante\CartaRecomendacionController;
 
+use App\Http\Controllers\Coordinador\PasantiaCoordinadorController;
+use App\Http\Controllers\Coordinador\CartaAprobacionCoordinadorController;
 use App\Http\Controllers\Coordinador\CartaRecomendacionCoordinadorController;
 
 // Mostrar el formulario de inicio de sesión
@@ -161,6 +164,33 @@ Route::middleware('auth')->group(function () {
     [CartaRecomendacionCoordinadorController::class, 'resolver']
     )->middleware('auth')->name('coordinador.recomendacion.resolver');
 
+    // Listado de cartas de aprobación del coordinador
+    Route::get('/coordinador/aceptacion', [
+        CartaAprobacionCoordinadorController::class,
+        'index'
+        ])->name('coordinador.aceptacion');
+        
+        // Gestionar o consultar una carta de aprobación
+        Route::get(
+            '/coordinador/aceptacion/{idCartaAprobacion}/gestionar',[
+                CartaAprobacionCoordinadorController::class,
+                'gestionar'
+        ])->name('coordinador.aceptacion.gestionar');
+
+        // Resolver estado una carta de aprobación
+        Route::post(
+            '/coordinador/aceptacion/{idCartaAprobacion}/resolver',
+            [
+                CartaAprobacionCoordinadorController::class,
+                'resolver'
+            ])->name('coordinador.aceptacion.resolver');
+
+        Route::post(
+            '/coordinador/aceptacion/{idCartaAprobacion}/crear-pasantia',
+            [PasantiaCoordinadorController::class, 'store']
+            )->name('coordinador.aceptacion.pasantia.store');
+
+
     // Rutas de provisionales para el estudiante
     $rutasEstudiante = [
         'documentos' => 'Subir documentos pendientes',
@@ -175,7 +205,6 @@ Route::middleware('auth')->group(function () {
 
     // Rutas de provisionales para el coordinador
     $rutasCoordinador = [
-        'aceptacion' => 'Cartas de aceptación',
         'alertas' => 'Alertas y riesgos',
         'reglas' => 'Reglas parametrizables',
     ];
