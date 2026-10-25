@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Documento extends Model
 {
@@ -47,5 +49,25 @@ class Documento extends Model
             'idCoordinador',
             'idCoordinador'
         );
+    }
+
+    // Versiones enviadas del documento, de la más reciente a la más antigua.
+    public function historial(): HasMany
+    {
+        return $this->hasMany(
+            DocumentoHistorial::class,
+            'idDocumento',
+            'idDocumento'
+        )->orderByDesc('version');
+    }
+
+    // Versión vigente: la última enviada por el estudiante.
+    public function ultimaVersion(): HasOne
+    {
+        return $this->hasOne(
+            DocumentoHistorial::class,
+            'idDocumento',
+            'idDocumento'
+        )->ofMany('version', 'max');
     }
 }

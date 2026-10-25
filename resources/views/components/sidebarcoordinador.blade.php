@@ -33,6 +33,11 @@
                 'icono' => '▤',
             ],
             [
+                'ruta' => 'coordinador.documentos',
+                'texto' => 'Revisión de documentos',
+                'icono' => '✓',
+            ],
+            [
                 'ruta' => 'coordinador.alertas',
                 'texto' => 'Alertas y riesgos',
                 'icono' => '⚠',

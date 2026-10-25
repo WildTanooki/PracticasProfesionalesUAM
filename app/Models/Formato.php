@@ -2,44 +2,29 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Documento extends Model
+class Formato extends Model
 {
-    protected $table = 'documentos';
+    use HasFactory;
 
-    protected $primaryKey = 'idDocumento';
+    protected $table = 'Formatos';
+
+    protected $primaryKey = 'idFormato';
 
     public $timestamps = false;
 
     protected $fillable = [
-        'idFormato',
         'archivo',
-        'estadoArchivo',
-        'observacion',
+        'nombreFormato',
+        'estado',
+        'descripcion',
+        'ultimaEdicion',
         'idCoordinador',
-        'idPasantia',
     ];
-
-    public function formato(): BelongsTo
-    {
-        return $this->belongsTo(
-            Formato::class,
-            'idFormato',
-            'idFormato'
-        );
-    }
-
-    public function pasantia(): BelongsTo
-    {
-        return $this->belongsTo(
-            Pasantia::class,
-            'idPasantia',
-            'idPasantia'
-        );
-    }
 
     public function coordinador(): BelongsTo
     {
@@ -50,12 +35,13 @@ class Documento extends Model
         );
     }
 
-    public function historial(): HasMany
+    // Documentos entregados por los estudiantes para este formato.
+    public function documentos(): HasMany
     {
         return $this->hasMany(
-            DocumentoHistorial::class,
-            'idDocumento',
-            'idDocumento'
-        )->orderByDesc('version');
+            Documento::class,
+            'idFormato',
+            'idFormato'
+        );
     }
 }
