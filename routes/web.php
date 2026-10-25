@@ -10,6 +10,7 @@ use App\Http\Controllers\Estudiante\DashboardController;
 use App\Http\Controllers\Estudiante\CartaAprobacionController;
 use App\Http\Controllers\Estudiante\CartaRecomendacionController;
 
+use App\Http\Controllers\Coordinador\PasantiaCoordinadorController;
 use App\Http\Controllers\Coordinador\CartaAprobacionCoordinadorController;
 use App\Http\Controllers\Coordinador\CartaRecomendacionCoordinadorController;
 
@@ -175,6 +176,20 @@ Route::middleware('auth')->group(function () {
                 CartaAprobacionCoordinadorController::class,
                 'gestionar'
         ])->name('coordinador.aceptacion.gestionar');
+
+        // Resolver estado una carta de aprobación
+        Route::post(
+            '/coordinador/aceptacion/{idCartaAprobacion}/resolver',
+            [
+                CartaAprobacionCoordinadorController::class,
+                'resolver'
+            ])->name('coordinador.aceptacion.resolver');
+
+        Route::post(
+            '/coordinador/aceptacion/{idCartaAprobacion}/crear-pasantia',
+            [PasantiaCoordinadorController::class, 'store']
+            )->name('coordinador.aceptacion.pasantia.store');
+
 
     // Rutas de provisionales para el estudiante
     $rutasEstudiante = [

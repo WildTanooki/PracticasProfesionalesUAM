@@ -16,6 +16,7 @@ class Pasantia extends Model
 
     protected $fillable = [
         'idPractica',
+        'idCartaAprobacion',
         'estado',
         'horasRequeridas',
         'horasAcumuladas',
