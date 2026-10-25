@@ -57,7 +57,6 @@ class CartaAprobacionController extends Controller
 
         CartaAprobacion::create([
             'credencial' => $usuario->credencial,
-            'idPasantia' => null,
             'estadoAprobacion' => 'Pendiente',
             'rutaArchivo' => $rutaArchivo,
             'fechaEmision' => now()->toDateString(),
