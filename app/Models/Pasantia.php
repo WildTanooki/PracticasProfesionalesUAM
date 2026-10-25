@@ -63,4 +63,14 @@ class Pasantia extends Model
             'idCartaAprobacion'
         );
     }
+
+    // Una pasantía puede tener muchos documentos asociados.
+    public function documentos(): HasMany
+    {
+        return $this->hasMany(
+            Documento::class,
+            'idPasantia',
+            'idPasantia'
+        );
+    }
 }

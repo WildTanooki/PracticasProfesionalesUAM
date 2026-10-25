@@ -18,24 +18,24 @@
                 'icono' => '⌂',
             ],
             [
-                'ruta' => 'estudiante.formatos',
-                'texto' => 'Ver Formatos Descargables',
-                'icono' => '✉',
-            ],
-            [
                 'ruta' => 'estudiante.recomendacion',
                 'texto' => 'Solicitar Carta de Recomendación',
                 'icono' => '▱',
             ],
             [
                 'ruta' => 'estudiante.aceptacion',
-                'texto' => 'Enviar Carta de Aprobación',
+                'texto' => 'Iniciar proceso de pasantía',
                 'icono' => '▤',
             ],
+                        [
+                'ruta' => 'estudiante.formatos',
+                'texto' => 'Ver Formatos Descargables',
+                'icono' => '✉',
+            ],
             [
-                'ruta' => 'estudiante.documentos',
-                'texto' => 'Enviar Documentos Pendientes',
-                'icono' => '📋',
+                'ruta' => 'estudiante.pasantias',
+                'texto' => 'ver mis pasantías',
+                'icono' => '✨',
             ],
         ];
     @endphp

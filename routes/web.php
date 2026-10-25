@@ -9,6 +9,7 @@ use App\Http\Controllers\FormatoController;
 use App\Http\Controllers\Estudiante\DashboardController;
 use App\Http\Controllers\Estudiante\CartaAprobacionController;
 use App\Http\Controllers\Estudiante\CartaRecomendacionController;
+use App\Http\Controllers\Estudiante\PasantiaController;
 
 use App\Http\Controllers\Coordinador\PasantiaCoordinadorController;
 use App\Http\Controllers\Coordinador\CartaAprobacionCoordinadorController;
@@ -114,6 +115,17 @@ Route::middleware('auth')->group(function () {
     [CartaRecomendacionController::class, 'verCarta']
     )->middleware('auth')->name('estudiante.recomendacion.verCarta');
 
+    //ver las pasantias del estudiante
+    Route::get('/estudiante/pasantias', 
+    [PasantiaController::class, 'index'])
+    ->name('estudiante.pasantias');
+
+    //ver detalles de una pasantia
+    Route::get(
+    '/estudiante/pasantias/{idPasantia}',
+    [PasantiaController::class, 'show']
+    )->name('estudiante.pasantias.show');
+
 
     // -------------------------------------------
     // |Aquí comienzan las rutas del coordinador.|
@@ -189,19 +201,6 @@ Route::middleware('auth')->group(function () {
             '/coordinador/aceptacion/{idCartaAprobacion}/crear-pasantia',
             [PasantiaCoordinadorController::class, 'store']
             )->name('coordinador.aceptacion.pasantia.store');
-
-
-    // Rutas de provisionales para el estudiante
-    $rutasEstudiante = [
-        'documentos' => 'Subir documentos pendientes',
-    ];
-    foreach ($rutasEstudiante as $ruta => $descripcion) {
-        Route::get("/estudiante/{$ruta}", function () {
-            abort_unless(auth()->user()->rol === 'Estudiante', 403);
-
-            return redirect()->route('estudiante.home');
-        })->name("estudiante.{$ruta}");
-    }
 
     // Rutas de provisionales para el coordinador
     $rutasCoordinador = [
