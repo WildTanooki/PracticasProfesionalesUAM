@@ -17,6 +17,7 @@ class ReglaRiesgo extends Model
         'puntuacion',
         'activa',
         'prioridad',
+        'variablePuntuacion',
         'idCoordinador',
     ];
 
