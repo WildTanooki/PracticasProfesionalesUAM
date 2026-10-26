@@ -3,6 +3,7 @@
 namespace App\Services\RulesEngine;
 
 use App\Models\ReglaRiesgo;
+use App\Models\UmbralRiesgo;
 use InvalidArgumentException;
 
 class RulesEngine
@@ -134,10 +135,13 @@ class RulesEngine
             ];
         }
 
-        return [
-            'puntuacionTotal' => round($totalScore, 2),
-            'reglasEvaluadas' => $evaluatedRules,
-        ];
+            $totalScore = round($totalScore, 2);
+            
+            return [
+                'puntuacionTotal' => $totalScore,
+                'nivelRiesgo' => $this->classifyRisk($totalScore),
+                'reglasEvaluadas' => $evaluatedRules,
+            ];
     }
 
     /**
@@ -251,4 +255,76 @@ class RulesEngine
             '<=' => $actual <= $expected,
         };
     }
+
+    
+    private function classifyRisk(float $totalScore): string
+    {
+        $thresholds = UmbralRiesgo::where('activo', true)
+            ->orderBy('limiteInferior')
+            ->get();
+
+        if ($thresholds->isEmpty()) {
+            throw new \InvalidArgumentException(
+                'No existen umbrales de riesgo activos.'
+            );
+        }
+
+        $previousUpper = null;
+        $first = true;
+
+        foreach ($thresholds as $threshold) {
+            $lower = (float) $threshold->limiteInferior;
+            $upper = $threshold->limiteSuperior !== null
+                ? (float) $threshold->limiteSuperior
+                : null;
+
+            if ($lower < 0 || ($upper !== null && $upper < $lower)) {
+                throw new \InvalidArgumentException(
+                    "El umbral '{$threshold->nivel}' tiene límites inválidos."
+                );
+            }
+
+            if ($first && $lower > 0) {
+                throw new \InvalidArgumentException(
+                    'Los umbrales deben cubrir los puntajes desde cero.'
+                );
+            }
+
+            if (!$first && $previousUpper !== null
+                && abs($lower - ($previousUpper + 0.01)) > 0.0001) {
+                throw new \InvalidArgumentException(
+                    'Los umbrales tienen huecos o se superponen.'
+                );
+            }
+
+            if (!$first && $previousUpper === null) {
+                throw new \InvalidArgumentException(
+                    'No puede haber umbrales después de uno sin límite superior.'
+                );
+            }
+
+            if ($totalScore >= $lower
+                && ($upper === null || $totalScore <= $upper)) {
+                $matchedLevel = $threshold->nivel;
+            }
+
+            $previousUpper = $upper;
+            $first = false;
+        }
+
+        if ($previousUpper !== null) {
+            throw new \InvalidArgumentException(
+                'El último umbral debe tener límite superior NULL.'
+            );
+        }
+
+        if (!isset($matchedLevel)) {
+            throw new \InvalidArgumentException(
+                'El puntaje no corresponde a ningún nivel de riesgo.'
+            );
+        }
+
+        return $matchedLevel;
+    }
+
 }
