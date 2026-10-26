@@ -10,10 +10,12 @@ use App\Http\Controllers\Estudiante\DashboardController;
 use App\Http\Controllers\Estudiante\CartaAprobacionController;
 use App\Http\Controllers\Estudiante\CartaRecomendacionController;
 use App\Http\Controllers\Estudiante\PasantiaController;
+use App\Http\Controllers\Estudiante\DocumentoController;
 
 use App\Http\Controllers\Coordinador\PasantiaCoordinadorController;
 use App\Http\Controllers\Coordinador\CartaAprobacionCoordinadorController;
 use App\Http\Controllers\Coordinador\CartaRecomendacionCoordinadorController;
+use App\Http\Controllers\Coordinador\DocumentoCoordinadorController;
 
 // Mostrar el formulario de inicio de sesión
 Route::get('/login', [AuthController::class, 'mostrarLogin'])
@@ -126,6 +128,26 @@ Route::middleware('auth')->group(function () {
     [PasantiaController::class, 'show']
     )->name('estudiante.pasantias.show');
 
+    //gestión documental del estudiante
+    Route::get('/estudiante/documentos',
+    [DocumentoController::class, 'index'])
+    ->name('estudiante.documentos');
+
+    Route::post(
+    '/estudiante/pasantias/{idPasantia}/documentos',
+    [DocumentoController::class, 'store']
+    )->name('estudiante.documentos.store');
+
+    Route::get(
+    '/estudiante/documentos/{idDocumento}',
+    [DocumentoController::class, 'show']
+    )->name('estudiante.documentos.show');
+
+    Route::get(
+    '/estudiante/documentos/versiones/{idHistorial}/descargar',
+    [DocumentoController::class, 'descargar']
+    )->name('estudiante.documentos.descargar');
+
 
     // -------------------------------------------
     // |Aquí comienzan las rutas del coordinador.|
@@ -201,6 +223,27 @@ Route::middleware('auth')->group(function () {
             '/coordinador/aceptacion/{idCartaAprobacion}/crear-pasantia',
             [PasantiaCoordinadorController::class, 'store']
             )->name('coordinador.aceptacion.pasantia.store');
+
+    // Revisión de documentos de pasantías
+    Route::get('/coordinador/documentos', [
+        DocumentoCoordinadorController::class,
+        'index'
+    ])->name('coordinador.documentos');
+
+    Route::get('/coordinador/documentos/{idDocumento}', [
+        DocumentoCoordinadorController::class,
+        'show'
+    ])->name('coordinador.documentos.show');
+
+    Route::post('/coordinador/documentos/{idDocumento}/revisar', [
+        DocumentoCoordinadorController::class,
+        'revisar'
+    ])->name('coordinador.documentos.revisar');
+
+    Route::get('/coordinador/documentos/versiones/{idHistorial}/descargar', [
+        DocumentoCoordinadorController::class,
+        'descargar'
+    ])->name('coordinador.documentos.descargar');
 
     // Rutas de provisionales para el coordinador
     $rutasCoordinador = [

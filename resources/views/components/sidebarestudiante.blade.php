@@ -37,6 +37,11 @@
                 'texto' => 'ver mis pasantías',
                 'icono' => '✨',
             ],
+            [
+                'ruta' => 'estudiante.documentos',
+                'texto' => 'Subir documentos',
+                'icono' => '⇪',
+            ],
         ];
     @endphp
 
