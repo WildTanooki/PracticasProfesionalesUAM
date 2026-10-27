@@ -50,4 +50,14 @@ class EvaluacionRiesgo extends Model
             'idEvaluacionRiesgo'
         );
     }
+
+    // Configuración de reglas y umbrales usada en esta evaluación.
+    public function version(): BelongsTo
+    {
+        return $this->belongsTo(
+            VersionConfiguracionRiesgo::class,
+            'versionConfiguracion',
+            'versionConfiguracion'
+        );
+    }
 }
