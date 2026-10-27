@@ -108,6 +108,7 @@ class FormatoController extends Controller
         try {
             Formato::create([
                 'nombreFormato' => $datos['nombreFormato'],
+                'descripcion' => $datos['descripcion'] ?? null,
                 'archivo' => $rutaArchivo,
                 'estado' => $datos['estado'] ?? 'Activo',
                 'ultimaEdicion' => now(),

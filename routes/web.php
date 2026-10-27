@@ -16,6 +16,7 @@ use App\Http\Controllers\Coordinador\PasantiaCoordinadorController;
 use App\Http\Controllers\Coordinador\CartaAprobacionCoordinadorController;
 use App\Http\Controllers\Coordinador\CartaRecomendacionCoordinadorController;
 use App\Http\Controllers\Coordinador\DocumentoCoordinadorController;
+use App\Http\Controllers\Coordinador\HomeController;
 
 // Mostrar el formulario de inicio de sesión
 Route::get('/login', [AuthController::class, 'mostrarLogin'])
@@ -155,10 +156,17 @@ Route::middleware('auth')->group(function () {
 
 
     // Dashboard del coordinador
-    Route::get('/coordinador/home', function () {
-        abort_unless(auth()->user()->rol === 'Coordinador', 403);
-        return view('coordinador.home');
-    })->name('coordinador.home');
+    Route::middleware('auth')->group(function () {
+        Route::get('/coordinador/home', [
+            HomeController::class,
+            'index'
+        ])->name('coordinador.home');
+    });
+
+    Route::get(
+        '/coordinador/pasantias/{idPasantia}/documentos',
+        [DocumentoCoordinadorController::class, 'documentosDePasantia']
+    )->name('coordinador.pasantias.documentos');
 
     //rutas para el manejo de formatos del coordinador
     Route::get('/coordinador/formatos', [

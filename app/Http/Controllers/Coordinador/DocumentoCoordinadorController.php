@@ -82,6 +82,101 @@ class DocumentoCoordinadorController extends Controller
     }
 
     /**
+     * Mostrar todos los documentos de una pasantía específica.
+     */
+    public function documentosDePasantia($idPasantia)
+    {
+        $coordinacion = $this->obtenerCoordinacion();
+    
+        // Verificar que la pasantía pertenezca a la carrera del coordinador.
+        $pasantia = \App\Models\Pasantia::query()
+            ->where('idPasantia', $idPasantia)
+            ->whereHas(
+                'practicaProfesional.estudiante.planEstudios',
+                function ($consulta) use ($coordinacion) {
+                    $consulta->where('idCarrera', $coordinacion->idCarrera);
+                }
+            )
+            ->with([
+                'practicaProfesional.estudiante.usuario',
+                'practicaProfesional.estudiante.planEstudios.carrera',
+                'documentos.formato',
+                'documentos.ultimaVersion',
+            ])
+            ->firstOrFail();
+    
+        // Obtener todos los documentos registrados en la pasantía.
+        $documentos = $pasantia->documentos
+            ->sortBy('idDocumento')
+            ->values();
+    
+        // Obtener los formatos activos requeridos para esta carrera.
+        $formatos = $this->gestionDocumental
+            ->formatosRequeridos($pasantia)
+            ->get();
+    
+        $idsFormatosRequeridos = $formatos
+            ->pluck('idFormato')
+            ->unique()
+            ->values();
+    
+        $formatosRequeridosTotal = $idsFormatosRequeridos->count();
+    
+        // Considerar únicamente los documentos correspondientes
+        // a formatos requeridos para calcular el progreso.
+        $documentosRequeridos = $documentos->filter(
+            fn ($documento) => $idsFormatosRequeridos
+                ->contains($documento->idFormato)
+        );
+    
+        // Cantidad de formatos requeridos que ya fueron entregados.
+        $formatosEntregados = $documentosRequeridos
+            ->pluck('idFormato')
+            ->unique()
+            ->count();
+    
+        // Cantidad de formatos requeridos que tienen aprobación.
+        $formatosAprobados = $documentosRequeridos
+            ->where('estadoArchivo', 'Aprobado')
+            ->pluck('idFormato')
+            ->unique()
+            ->count();
+    
+        // Cantidad de documentos por estado.
+        $documentosPendientes = $documentosRequeridos
+            ->where('estadoArchivo', 'Pendiente')
+            ->count();
+    
+        $documentosACorregir = $documentosRequeridos
+            ->where('estadoArchivo', 'A corregir')
+            ->count();
+    
+        $documentosRechazados = $documentosRequeridos
+            ->where('estadoArchivo', 'Rechazado')
+            ->count();
+    
+        // La pasantía está aprobada si todos los formatos requeridos
+        // fueron entregados y aprobados.
+        $estadoGlobal = (
+            $formatosRequeridosTotal > 0
+            && $formatosEntregados === $formatosRequeridosTotal
+            && $formatosAprobados === $formatosRequeridosTotal
+        ) ? 'Aprobados' : 'Pendientes';
+    
+        return view('coordinador.documentos-pasantia', compact(
+            'pasantia',
+            'documentos',
+            'formatosRequeridosTotal',
+            'formatosEntregados',
+            'formatosAprobados',
+            'documentosPendientes',
+            'documentosACorregir',
+            'documentosRechazados',
+            'estadoGlobal'
+        ));
+    }
+
+    /**
      * Detalle de un documento con su historial de versiones.
      */
     public function show($idDocumento)
