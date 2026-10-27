@@ -37,7 +37,8 @@
                 $usuarioEstudiante = $documento->pasantia?->practicaProfesional?->estudiante?->usuario;
                 $versionVigente = $documento->historial->first();
             @endphp
-
+            // Enlace para volver a la lista de documentos
+            // Se puede usar url()->previous() pero necesita mejorarse
             <a href="{{ route('coordinador.documentos') }}"
                class="text-sm font-semibold text-slate-500 transition hover:text-[#5b9eaa]">
                 ← Volver a documentos
