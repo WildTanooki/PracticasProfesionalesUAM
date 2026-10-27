@@ -110,6 +110,15 @@ class RiskEvaluator
             json_encode($configuracion, JSON_UNESCAPED_UNICODE)
         );
 
+        // Se busca primero: en MySQL un INSERT rechazado por el UNIQUE
+        // consume un número del AUTO_INCREMENT y dejaría saltos en las
+        // versiones.
+        $existente = VersionConfiguracionRiesgo::where('huella', $huella)->first();
+
+        if ($existente) {
+            return $existente;
+        }
+
         // createOrFirst evita versiones duplicadas si dos evaluaciones
         // registran la misma configuración al mismo tiempo.
         return VersionConfiguracionRiesgo::createOrFirst(
