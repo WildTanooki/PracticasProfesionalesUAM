@@ -258,20 +258,35 @@ class ReglaRiesgoCoordinadorTest extends TestCase
         $this->assertSame(1, CondicionRegla::count());
     }
 
-    public function test_no_edita_reglas_de_otra_carrera_ni_generales(): void
+    public function test_no_edita_reglas_de_otra_carrera(): void
     {
         $ajena = $this->crearRegla('C2', 'De otra carrera');
+
+        $this->actingAs($this->coordinador)
+            ->put(route('coordinador.reglas.update', $ajena->idReglaRiesgo), $this->datosValidos([
+                'nombre' => 'Cambiada',
+            ]))
+            ->assertNotFound();
+
+        $this->assertSame('De otra carrera', $ajena->refresh()->nombre);
+    }
+
+    public function test_edita_reglas_generales_sin_asignarles_coordinador(): void
+    {
         $general = $this->crearRegla(null, 'General');
 
-        foreach ([$ajena, $general] as $regla) {
-            $this->actingAs($this->coordinador)
-                ->put(route('coordinador.reglas.update', $regla->idReglaRiesgo), $this->datosValidos([
-                    'nombre' => 'Cambiada',
-                ]))
-                ->assertNotFound();
+        $this->actingAs($this->coordinador)
+            ->put(route('coordinador.reglas.update', $general->idReglaRiesgo), $this->datosValidos([
+                'nombre' => 'General cambiada',
+                '_formulario' => 'editar',
+            ]))
+            ->assertRedirect(route('coordinador.reglas'))
+            ->assertSessionHasNoErrors();
 
-            $this->assertNotSame('Cambiada', $regla->refresh()->nombre);
-        }
+        $general->refresh();
+
+        $this->assertSame('General cambiada', $general->nombre);
+        $this->assertNull($general->idCoordinador);
     }
 
     public function test_la_lista_muestra_reglas_de_la_carrera_y_generales(): void

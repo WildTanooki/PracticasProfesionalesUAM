@@ -130,7 +130,8 @@ class ReglaRiesgoCoordinadorController extends Controller
     }
 
     /**
-     * Actualizar una regla de la carrera y reemplazar sus condiciones.
+     * Actualizar una regla de la carrera o general y reemplazar sus
+     * condiciones. Las reglas de otras carreras no se pueden editar.
      * Las evaluaciones anteriores no cambian: guardan su propia copia
      * de la configuración usada.
      */
@@ -139,7 +140,7 @@ class ReglaRiesgoCoordinadorController extends Controller
         $coordinacion = $this->obtenerCoordinacion();
 
         $regla = ReglaRiesgo::where('idReglaRiesgo', $idReglaRiesgo)
-            ->deCarrera($coordinacion->idCarrera)
+            ->visiblesParaCarrera($coordinacion->idCarrera)
             ->firstOrFail();
 
         $datos = $this->validarRegla($request);

@@ -313,7 +313,7 @@
                             @forelse ($reglas as $regla)
                                 @php
                                     $esGeneral = $regla->idCoordinador === null;
-                                    $editable = ! $esGeneral && $regla->coordinador?->idCarrera === $idCarrera;
+                                    $editable = $esGeneral || $regla->coordinador?->idCarrera === $idCarrera;
                                 @endphp
 
                                 <tr class="align-top hover:bg-slate-50/80">
@@ -410,8 +410,8 @@
     style="display: none;"
     class="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-900/50 p-4 backdrop-blur-sm sm:items-center"
 >
-    <div @click.outside="modal = false" class="w-full max-w-3xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl">
-        <div class="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+    <div @click.outside="modal = false" class="w-full max-w-4xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl">
+        <div class="flex items-center justify-between border-b border-slate-100 px-6 py-3">
             <h3 class="text-lg font-bold text-slate-800" x-text="regla.id ? 'Editar regla' : 'Nueva regla'"></h3>
             <button type="button" @click="modal = false" class="text-xl font-bold text-slate-400 hover:text-slate-600" aria-label="Cerrar ventana">&times;</button>
         </div>
@@ -424,7 +424,7 @@
             <input type="hidden" name="_formulario" :value="regla.id ? 'editar' : 'crear'">
             <input type="hidden" name="idReglaRiesgo" :value="regla.id">
 
-            <div class="space-y-5 p-6">
+            <div class="space-y-4 px-6 py-4">
                 {{-- Errores del formulario que se reabrió --}}
                 @if ($formularioConError)
                     <div class="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700" role="alert">
@@ -437,26 +437,26 @@
                 @endif
 
                 <div class="grid gap-4 sm:grid-cols-2">
-                    <div class="sm:col-span-2">
+                    <div>
                         <label for="nombre" class="mb-1 block text-xs font-bold uppercase tracking-wider text-slate-700">Nombre de la regla *</label>
                         <input id="nombre" type="text" name="nombre" x-model="regla.nombre" required maxlength="100"
                                placeholder="Ej. Documentación atrasada"
                                class="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#5b9eaa]">
                     </div>
 
-                    <div class="sm:col-span-2">
+                    <div>
                         <label for="descripcion" class="mb-1 block text-xs font-bold uppercase tracking-wider text-slate-700">Descripción</label>
-                        <textarea id="descripcion" name="descripcion" x-model="regla.descripcion" maxlength="255" rows="2"
-                                  placeholder="Para qué sirve la regla"
-                                  class="w-full resize-none rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#5b9eaa]"></textarea>
+                        <input id="descripcion" type="text" name="descripcion" x-model="regla.descripcion" maxlength="255"
+                               placeholder="Para qué sirve la regla"
+                               class="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#5b9eaa]">
                     </div>
                 </div>
 
                 {{-- Condiciones --}}
-                <fieldset class="min-w-0 rounded-xl border border-slate-200 p-4">
+                <fieldset class="min-w-0 rounded-xl border border-slate-200 px-4 pb-3 pt-2">
                     <legend class="px-1 text-xs font-bold uppercase tracking-wider text-slate-700">Condiciones *</legend>
 
-                    <div class="mb-3 flex flex-wrap items-center gap-2 text-sm">
+                    <div class="mb-2 flex flex-wrap items-center gap-2 text-sm">
                         <label for="conector" class="text-slate-600">La regla se cumple si</label>
                         <select id="conector" name="conector" x-model="regla.conector"
                                 class="rounded-md border border-slate-300 bg-white px-2 py-1 text-sm">
@@ -500,13 +500,13 @@
                     </div>
 
                     <button type="button" @click="agregarCondicion()" x-show="regla.condiciones.length < 10"
-                            class="mt-3 text-sm font-semibold text-[#397783] hover:underline">
+                            class="mt-2 text-sm font-semibold text-[#397783] hover:underline">
                         + Agregar condición
                     </button>
                 </fieldset>
 
                 {{-- Puntuación, prioridad y estado --}}
-                <div class="grid gap-4 sm:grid-cols-4">
+                <div class="grid gap-4 sm:grid-cols-5">
                     <div>
                         <label for="puntuacion" class="mb-1 block text-xs font-bold uppercase tracking-wider text-slate-700">Puntos *</label>
                         <input id="puntuacion" type="number" name="puntuacion" x-model="regla.puntuacion" required
@@ -541,10 +541,10 @@
                     </div>
                 </div>
 
-                <p class="rounded-lg bg-cyan-50 px-4 py-3 text-sm text-cyan-900" x-text="resumen()"></p>
+                <p class="rounded-lg bg-cyan-50 px-4 py-2 text-sm text-cyan-900" x-text="resumen()"></p>
             </div>
 
-            <div class="flex items-center justify-end gap-3 border-t border-slate-100 bg-slate-50 px-6 py-4">
+            <div class="flex items-center justify-end gap-3 border-t border-slate-100 bg-slate-50 px-6 py-3">
                 <button type="button" @click="modal = false"
                         class="rounded-lg bg-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-300">Cancelar</button>
                 <button type="submit"

@@ -77,12 +77,4 @@ class ReglaRiesgo extends Model
                 });
         });
     }
-
-    // Reglas creadas por coordinadores de la carrera indicada.
-    public function scopeDeCarrera(Builder $query, int $idCarrera): Builder
-    {
-        return $query->whereHas('coordinador', function ($coordinador) use ($idCarrera) {
-            $coordinador->where('idCarrera', $idCarrera);
-        });
-    }
 }
