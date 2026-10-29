@@ -18,6 +18,7 @@ use App\Http\Controllers\Coordinador\CartaRecomendacionCoordinadorController;
 use App\Http\Controllers\Coordinador\DocumentoCoordinadorController;
 use App\Http\Controllers\Coordinador\HomeController;
 use App\Http\Controllers\Coordinador\ReglaRiesgoCoordinadorController;
+use App\Http\Controllers\Coordinador\AlertaRiesgoCoordinadorController;
 
 // Mostrar el formulario de inicio de sesión
 Route::get('/login', [AuthController::class, 'mostrarLogin'])
@@ -254,6 +255,27 @@ Route::middleware('auth')->group(function () {
         'descargar'
     ])->name('coordinador.documentos.descargar');
 
+    // Alertas y riesgos de las pasantías
+    Route::get('/coordinador/alertas', [
+        AlertaRiesgoCoordinadorController::class,
+        'index'
+    ])->name('coordinador.alertas');
+
+    Route::post('/coordinador/alertas/evaluar', [
+        AlertaRiesgoCoordinadorController::class,
+        'evaluarTodas'
+    ])->name('coordinador.alertas.evaluar');
+
+    Route::get('/coordinador/alertas/{idPasantia}', [
+        AlertaRiesgoCoordinadorController::class,
+        'show'
+    ])->whereNumber('idPasantia')->name('coordinador.alertas.show');
+
+    Route::post('/coordinador/alertas/{idPasantia}/evaluar', [
+        AlertaRiesgoCoordinadorController::class,
+        'evaluar'
+    ])->whereNumber('idPasantia')->name('coordinador.alertas.evaluar-pasantia');
+
     // Reglas parametrizables del motor de riesgo
     Route::get('/coordinador/reglas', [
         ReglaRiesgoCoordinadorController::class,
@@ -274,18 +296,6 @@ Route::middleware('auth')->group(function () {
         ReglaRiesgoCoordinadorController::class,
         'update'
     ])->whereNumber('idReglaRiesgo')->name('coordinador.reglas.update');
-
-    // Rutas de provisionales para el coordinador
-    $rutasCoordinador = [
-        'alertas' => 'Alertas y riesgos',
-    ];
-    foreach ($rutasCoordinador as $ruta => $descripcion) {
-        Route::get("/coordinador/{$ruta}", function () {
-            abort_unless(auth()->user()->rol === 'Coordinador', 403);
-
-            return redirect()->route('coordinador.home');
-        })->name("coordinador.{$ruta}");
-    }
 
     // Cerrar sesión
     Route::post('/logout', [AuthController::class, 'cerrarSesion'])
