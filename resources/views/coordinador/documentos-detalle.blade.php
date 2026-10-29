@@ -37,11 +37,12 @@
                 $usuarioEstudiante = $documento->pasantia?->practicaProfesional?->estudiante?->usuario;
                 $versionVigente = $documento->historial->first();
             @endphp
-            // Enlace para volver a la lista de documentos
-            // Se puede usar url()->previous() pero necesita mejorarse
-            <a href="{{ route('coordinador.documentos') }}"
+            {{-- Volver a los documentos de la pasantía del documento --}}
+            <a href="{{ $documento->idPasantia
+                    ? route('coordinador.pasantias.documentos', $documento->idPasantia)
+                    : route('coordinador.documentos') }}"
                class="text-sm font-semibold text-slate-500 transition hover:text-[#5b9eaa]">
-                ← Volver a documentos
+                ← Volver a documentos de la pasantía
             </a>
 
             @if (session('success'))
