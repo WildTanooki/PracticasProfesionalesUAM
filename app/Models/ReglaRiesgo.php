@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -55,5 +57,24 @@ class ReglaRiesgo extends Model
             'idCoordinador',
             'idCoordinador'
         );
+    }
+
+    // Código visible en la pantalla, ej. R-001.
+    protected function codigo(): Attribute
+    {
+        return Attribute::get(
+            fn () => 'R-' . str_pad((string) $this->idReglaRiesgo, 3, '0', STR_PAD_LEFT)
+        );
+    }
+
+    // Reglas generales (sin coordinador) y las de la carrera indicada.
+    public function scopeVisiblesParaCarrera(Builder $query, int $idCarrera): Builder
+    {
+        return $query->where(function ($consulta) use ($idCarrera) {
+            $consulta->whereNull('idCoordinador')
+                ->orWhereHas('coordinador', function ($coordinador) use ($idCarrera) {
+                    $coordinador->where('idCarrera', $idCarrera);
+                });
+        });
     }
 }

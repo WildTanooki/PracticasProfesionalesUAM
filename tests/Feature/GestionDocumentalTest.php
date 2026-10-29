@@ -492,6 +492,8 @@ class GestionDocumentalTest extends TestCase
 
         $this->get(route('coordinador.documentos.show', $documento->idDocumento))
             ->assertOk()
-            ->assertSee('Guardar revisión');
+            ->assertSee('Guardar revisión')
+            ->assertSee(route('coordinador.pasantias.documentos', $documento->idPasantia))
+            ->assertDontSee('url()->previous()');
     }
 }

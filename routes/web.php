@@ -17,6 +17,7 @@ use App\Http\Controllers\Coordinador\CartaAprobacionCoordinadorController;
 use App\Http\Controllers\Coordinador\CartaRecomendacionCoordinadorController;
 use App\Http\Controllers\Coordinador\DocumentoCoordinadorController;
 use App\Http\Controllers\Coordinador\HomeController;
+use App\Http\Controllers\Coordinador\ReglaRiesgoCoordinadorController;
 
 // Mostrar el formulario de inicio de sesión
 Route::get('/login', [AuthController::class, 'mostrarLogin'])
@@ -253,10 +254,30 @@ Route::middleware('auth')->group(function () {
         'descargar'
     ])->name('coordinador.documentos.descargar');
 
+    // Reglas parametrizables del motor de riesgo
+    Route::get('/coordinador/reglas', [
+        ReglaRiesgoCoordinadorController::class,
+        'index'
+    ])->name('coordinador.reglas');
+
+    Route::post('/coordinador/reglas', [
+        ReglaRiesgoCoordinadorController::class,
+        'store'
+    ])->name('coordinador.reglas.store');
+
+    Route::put('/coordinador/reglas/umbrales', [
+        ReglaRiesgoCoordinadorController::class,
+        'actualizarUmbrales'
+    ])->name('coordinador.reglas.umbrales');
+
+    Route::put('/coordinador/reglas/{idReglaRiesgo}', [
+        ReglaRiesgoCoordinadorController::class,
+        'update'
+    ])->whereNumber('idReglaRiesgo')->name('coordinador.reglas.update');
+
     // Rutas de provisionales para el coordinador
     $rutasCoordinador = [
         'alertas' => 'Alertas y riesgos',
-        'reglas' => 'Reglas parametrizables',
     ];
     foreach ($rutasCoordinador as $ruta => $descripcion) {
         Route::get("/coordinador/{$ruta}", function () {
