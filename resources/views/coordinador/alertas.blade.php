@@ -26,7 +26,6 @@
         };
     };
 
-    $sinEvaluar = $conteos[Alertas::SIN_EVALUAR] ?? 0;
     $conError = $conteos[Alertas::CON_ERROR] ?? 0;
     $hayFiltros = $filtros['buscar'] !== '' || $filtros['nivel'] !== '';
 @endphp
@@ -51,44 +50,27 @@
                 <div>
                     <h2 class="text-2xl font-bold text-slate-900">Alertas y niveles de riesgo</h2>
                     <p class="mt-1 text-sm text-slate-500">
-                        Último nivel de riesgo de cada pasantía en progreso de tu carrera, según las reglas parametrizables.
+                        Nivel de riesgo actual de cada pasantía en progreso de tu carrera. Se recalcula solo cuando cambian los documentos, los días o las reglas.
                     </p>
                 </div>
-
-                <form method="POST" action="{{ route('coordinador.alertas.evaluar') }}">
-                    @csrf
-                    <button type="submit"
-                            class="inline-flex items-center justify-center gap-2 rounded-lg bg-[#5b9eaa] px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-[#4c848f]">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <path d="M21 12a9 9 0 1 1-3-6.7L21 8"/>
-                            <path d="M21 3v5h-5"/>
-                        </svg>
-                        Evaluar pasantías ahora
-                    </button>
-                </form>
             </section>
 
-            @if (session('success'))
-                <div class="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
-                    {{ session('success') }}
-                </div>
-            @endif
-
-            @if (session('error'))
-                <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800" role="alert">
-                    {{ session('error') }}
-                </div>
-            @endif
-
-            @if (session('avisos'))
+            @if ($avisos !== [])
                 <div class="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
                     <p class="font-semibold">Algunas pasantías no se pudieron evaluar:</p>
                     <ul class="mt-1 list-disc space-y-0.5 pl-5">
-                        @foreach (session('avisos') as $aviso)
+                        @foreach ($avisos as $aviso)
                             <li>{{ $aviso }}</li>
                         @endforeach
                     </ul>
+                </div>
+            @endif
+
+            @if ($conError > 0)
+                <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800" role="alert">
+                    No se pudo calcular el riesgo porque la configuración de reglas o niveles tiene un error.
+                    Corrígelo en <a href="{{ route('coordinador.reglas') }}" class="font-semibold underline">Reglas parametrizables</a>
+                    y la evaluación se actualizará sola.
                 </div>
             @endif
 
@@ -124,20 +106,6 @@
                         </a>
                     @endforeach
                 </section>
-            @endif
-
-            @if ($sinEvaluar > 0 || $conError > 0)
-                <p class="text-sm text-slate-500">
-                    @if ($sinEvaluar > 0)
-                        {{ $sinEvaluar === 1 ? '1 pasantía todavía no tiene' : "{$sinEvaluar} pasantías todavía no tienen" }}
-                        evaluación.
-                    @endif
-                    @if ($conError > 0)
-                        {{ $conError === 1 ? '1 pasantía tiene' : "{$conError} pasantías tienen" }}
-                        su última evaluación con error de configuración.
-                    @endif
-                    Usa "Evaluar pasantías ahora" para actualizarlas.
-                </p>
             @endif
 
             {{-- Tabla de pasantías --}}

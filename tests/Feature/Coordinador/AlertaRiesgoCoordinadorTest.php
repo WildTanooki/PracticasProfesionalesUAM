@@ -289,51 +289,82 @@ class AlertaRiesgoCoordinadorTest extends TestCase
         $estudiante = Usuario::find('EST-1');
 
         $this->actingAs($estudiante)->get(route('coordinador.alertas'))->assertForbidden();
-        $this->actingAs($estudiante)->post(route('coordinador.alertas.evaluar'))->assertForbidden();
         $this->actingAs($estudiante)->get(route('coordinador.alertas.show', 1))->assertForbidden();
 
         $this->assertSame(0, EvaluacionRiesgo::count());
     }
 
-    public function test_lista_solo_pasantias_en_progreso_de_la_carrera(): void
+    public function test_al_abrir_la_lista_evalua_las_pasantias_en_progreso_de_la_carrera(): void
     {
-        $this->actingAs($this->coordinador)
+        $respuesta = $this->actingAs($this->coordinador)
             ->get(route('coordinador.alertas'))
             ->assertOk()
             ->assertSee('Ana López')
             ->assertSee('Luis Pérez')
-            ->assertSee('Sin evaluar')
+            ->assertSee('R-001')
+            ->assertSee('Documentación crítica')
+            ->assertSee('Sin incidencias')
             ->assertDontSee('Marta Ruiz')
             ->assertDontSee('Empresa antigua');
-    }
 
-    public function test_evaluar_todas_guarda_una_evaluacion_por_pasantia_de_la_carrera(): void
-    {
-        $this->actingAs($this->coordinador)
-            ->post(route('coordinador.alertas.evaluar'))
-            ->assertRedirect(route('coordinador.alertas'))
-            ->assertSessionHas('avisos', [])
-            ->assertSessionHas('success', 'Se evaluaron 2 pasantías.');
-
+        // Solo las pasantías en progreso de la carrera 1.
         $this->assertEqualsCanonicalizing([1, 2], EvaluacionRiesgo::pluck('idPasantia')->all());
         $this->assertSame('Alto', EvaluacionRiesgo::where('idPasantia', 1)->value('nivelRiesgo'));
         $this->assertSame('Bajo', EvaluacionRiesgo::where('idPasantia', 2)->value('nivelRiesgo'));
-
-        $respuesta = $this->actingAs($this->coordinador)
-            ->get(route('coordinador.alertas'))
-            ->assertOk()
-            ->assertSee('R-001')
-            ->assertSee('Documentación crítica')
-            ->assertSee('Sin incidencias');
-
-        // Una pasantía en Alto y otra en Bajo.
         $this->assertSame(['Alto' => 1, 'Bajo' => 1], $respuesta->viewData('conteos')->sortKeys()->all());
+    }
+
+    public function test_si_nada_cambia_no_guarda_otra_evaluacion(): void
+    {
+        $this->actingAs($this->coordinador)->get(route('coordinador.alertas'));
+        $this->actingAs($this->coordinador)->get(route('coordinador.alertas'));
+        $this->actingAs($this->coordinador)->get(route('coordinador.alertas.show', 1));
+
+        $this->assertSame(2, EvaluacionRiesgo::count());
+    }
+
+    public function test_se_reevalua_cuando_cambian_los_documentos(): void
+    {
+        $this->actingAs($this->coordinador)->get(route('coordinador.alertas'));
+
+        // Ana entrega el formato que le faltaba.
+        DB::table('documentos')->insert(['idFormato' => 4, 'estadoArchivo' => 'Pendiente', 'idPasantia' => 1]);
+
+        $this->actingAs($this->coordinador)->get(route('coordinador.alertas.show', 1))->assertOk();
+
+        $this->assertSame(2, EvaluacionRiesgo::where('idPasantia', 1)->count());
+        $this->assertSame(0, EvaluacionRiesgo::latest('idEvaluacionRiesgo')->first()->contextoEvaluado['documentos_no_entregados']);
+        $this->assertSame(1, EvaluacionRiesgo::where('idPasantia', 2)->count());
+    }
+
+    public function test_se_reevalua_cuando_pasan_los_dias(): void
+    {
+        $this->actingAs($this->coordinador)->get(route('coordinador.alertas'));
+
+        $this->travel(1)->days();
+
+        $this->actingAs($this->coordinador)->get(route('coordinador.alertas'));
+
+        $this->assertSame(2, EvaluacionRiesgo::where('idPasantia', 1)->count());
+        $this->assertSame(2, EvaluacionRiesgo::where('idPasantia', 2)->count());
+    }
+
+    public function test_se_reevalua_cuando_cambian_las_reglas(): void
+    {
+        $this->actingAs($this->coordinador)->get(route('coordinador.alertas'));
+
+        ReglaRiesgo::where('nombre', 'Documentos por corregir')->update(['puntuacion' => 5]);
+
+        $this->actingAs($this->coordinador)->get(route('coordinador.alertas'));
+
+        $ultima = EvaluacionRiesgo::where('idPasantia', 1)->latest('idEvaluacionRiesgo')->first();
+        $this->assertSame(2, EvaluacionRiesgo::where('idPasantia', 1)->count());
+        $this->assertSame('45.00', $ultima->puntuacionTotal);
+        $this->assertSame(2, $ultima->versionConfiguracion);
     }
 
     public function test_filtra_por_nivel_y_busqueda(): void
     {
-        $this->actingAs($this->coordinador)->post(route('coordinador.alertas.evaluar'));
-
         $this->actingAs($this->coordinador)
             ->get(route('coordinador.alertas', ['nivel' => 'Alto']))
             ->assertOk()
@@ -349,16 +380,13 @@ class AlertaRiesgoCoordinadorTest extends TestCase
 
     public function test_detalle_muestra_reglas_motivo_recomendacion_e_historial(): void
     {
-        $this->actingAs($this->coordinador)->post(route('coordinador.alertas.evaluar-pasantia', 1))
-            ->assertRedirect(route('coordinador.alertas.show', 1))
-            ->assertSessionHas('success');
-        $this->actingAs($this->coordinador)->post(route('coordinador.alertas.evaluar-pasantia', 1));
-
-        $this->assertSame(2, EvaluacionRiesgo::where('idPasantia', 1)->count());
+        $this->actingAs($this->coordinador)->get(route('coordinador.alertas.show', 1));
+        $this->travel(1)->days();
 
         $respuesta = $this->actingAs($this->coordinador)
             ->get(route('coordinador.alertas.show', 1))
             ->assertOk()
+            ->assertDontSee('Evaluar ahora')
             ->assertSee('Nivel de riesgo: Alto')
             ->assertSee('50 puntos')
             ->assertSee('Banco Atlántida')
@@ -376,7 +404,6 @@ class AlertaRiesgoCoordinadorTest extends TestCase
     public function test_no_muestra_ni_evalua_pasantias_de_otra_carrera(): void
     {
         $this->actingAs($this->coordinador)->get(route('coordinador.alertas.show', 4))->assertNotFound();
-        $this->actingAs($this->coordinador)->post(route('coordinador.alertas.evaluar-pasantia', 4))->assertNotFound();
 
         $this->assertSame(0, EvaluacionRiesgo::count());
     }
@@ -386,29 +413,39 @@ class AlertaRiesgoCoordinadorTest extends TestCase
         UmbralRiesgo::where('nivel', 'Medio')->update(['limiteInferior' => 30]);
 
         $this->actingAs($this->coordinador)
-            ->post(route('coordinador.alertas.evaluar'))
-            ->assertRedirect(route('coordinador.alertas'))
-            ->assertSessionHas('error');
+            ->get(route('coordinador.alertas'))
+            ->assertOk()
+            ->assertSee('No se pudo calcular el riesgo');
 
-        $evaluacion = EvaluacionRiesgo::sole();
+        $evaluacion = EvaluacionRiesgo::where('idPasantia', 1)->sole();
         $this->assertSame(RiskEvaluator::ESTADO_ERROR_CONFIGURACION, $evaluacion->estadoEvaluacion);
         $this->assertNull($evaluacion->nivelRiesgo);
 
         $this->actingAs($this->coordinador)
-            ->get(route('coordinador.alertas.show', $evaluacion->idPasantia))
+            ->get(route('coordinador.alertas.show', 1))
             ->assertOk()
             ->assertSee('Error de configuración')
             ->assertDontSee('Nivel de riesgo:');
+
+        // Al corregir los niveles, se vuelve a calcular sola.
+        UmbralRiesgo::where('nivel', 'Medio')->update(['limiteInferior' => 20]);
+
+        $this->actingAs($this->coordinador)
+            ->get(route('coordinador.alertas.show', 1))
+            ->assertSee('Nivel de riesgo: Alto');
     }
 
     public function test_avisa_las_pasantias_que_no_se_pueden_evaluar(): void
     {
         DB::table('pasantia')->where('idPasantia', 2)->update(['fechaFinEstimada' => null]);
 
-        $this->actingAs($this->coordinador)
-            ->post(route('coordinador.alertas.evaluar'))
-            ->assertSessionHas('success', 'Se evaluó 1 pasantía.')
-            ->assertSessionHas('avisos', ['Pasantía #2: La pasantía no tiene fecha final estimada.']);
+        $respuesta = $this->actingAs($this->coordinador)
+            ->get(route('coordinador.alertas'))
+            ->assertOk()
+            ->assertSee('Algunas pasantías no se pudieron evaluar');
+
+        $this->assertSame(['Pasantía #2: La pasantía no tiene fecha final estimada.'], $respuesta->viewData('avisos'));
+        $this->assertSame(1, EvaluacionRiesgo::count());
     }
 
     public function test_recomendaciones_segun_el_contexto(): void

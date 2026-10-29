@@ -17,6 +17,10 @@ use RuntimeException;
 /**
  * Alertas y riesgos: muestra el último nivel de riesgo de cada pasantía
  * en progreso de la carrera, su detalle y el historial de evaluaciones.
+ *
+ * Las pasantías se evalúan solas al abrir la pantalla: si cambiaron sus
+ * documentos, los días que faltan o las reglas, se guarda una evaluación
+ * nueva; si no, se muestra la última.
  */
 class AlertaRiesgoCoordinadorController extends Controller
 {
@@ -66,6 +70,13 @@ class AlertaRiesgoCoordinadorController extends Controller
         $coordinacion = $this->obtenerCoordinacion();
 
         $niveles = $this->niveles();
+
+        $avisos = $this->actualizarEvaluaciones(
+            $this->pasantiasDeCarrera($coordinacion)
+                ->where('estado', 'En progreso')
+                ->orderBy('idPasantia')
+                ->pluck('idPasantia')
+        );
 
         $pasantias = $this->pasantiasDeCarrera($coordinacion)
             ->where('estado', 'En progreso')
@@ -129,6 +140,7 @@ class AlertaRiesgoCoordinadorController extends Controller
             'niveles' => $niveles,
             'conteos' => $conteos,
             'filtros' => ['nivel' => $nivel, 'buscar' => $buscar],
+            'avisos' => $avisos,
         ]);
     }
 
@@ -148,6 +160,10 @@ class AlertaRiesgoCoordinadorController extends Controller
             ])
             ->firstOrFail();
 
+        $avisos = $pasantia->estado === 'En progreso'
+            ? $this->actualizarEvaluaciones([$pasantia->idPasantia])
+            : [];
+
         $evaluaciones = $pasantia->evaluacionesRiesgo()
             ->with('detalles.regla')
             ->orderByDesc('idEvaluacionRiesgo')
@@ -164,88 +180,32 @@ class AlertaRiesgoCoordinadorController extends Controller
                 ? RiskRecommendations::para($evaluacion->contextoEvaluado)
                 : [],
             'niveles' => $this->niveles(),
+            'avisos' => $avisos,
         ]);
     }
 
     /**
-     * Evaluar ahora todas las pasantías en progreso de la carrera.
+     * Actualizar la evaluación de las pasantías indicadas. Solo se guarda
+     * una evaluación nueva si cambió algo desde la última.
+     *
+     * @return list<string> avisos de las pasantías que no se pudieron evaluar
      */
-    public function evaluarTodas()
+    private function actualizarEvaluaciones(iterable $ids): array
     {
-        $coordinacion = $this->obtenerCoordinacion();
-
-        $ids = $this->pasantiasDeCarrera($coordinacion)
-            ->where('estado', 'En progreso')
-            ->orderBy('idPasantia')
-            ->pluck('idPasantia');
-
-        if ($ids->isEmpty()) {
-            return redirect()
-                ->route('coordinador.alertas')
-                ->with('success', 'No hay pasantías en progreso para evaluar.');
-        }
-
-        $evaluadas = 0;
         $avisos = [];
 
         foreach ($ids as $id) {
             try {
-                $evaluacion = $this->evaluador->evaluar($id);
+                $this->evaluador->evaluarSiCambio($id);
             } catch (PDOException $e) {
                 // Un fallo de base de datos no es un aviso de la pasantía.
                 throw $e;
             } catch (RuntimeException $e) {
                 $avisos[] = "Pasantía #{$id}: {$e->getMessage()}";
-
-                continue;
-            }
-
-            if ($evaluacion->estadoEvaluacion === RiskEvaluator::ESTADO_CORRECTA) {
-                $evaluadas++;
-            } else {
-                // Un error de configuración afecta a todas por igual.
-                return redirect()
-                    ->route('coordinador.alertas')
-                    ->with('error', 'No se pudo calcular el riesgo: ' . $evaluacion->errorConfiguracion
-                        . ' Corrígelo en "Reglas parametrizables".');
             }
         }
 
-        return redirect()
-            ->route('coordinador.alertas')
-            ->with('success', $evaluadas === 1
-                ? 'Se evaluó 1 pasantía.'
-                : "Se evaluaron {$evaluadas} pasantías.")
-            ->with('avisos', $avisos);
-    }
-
-    /**
-     * Evaluar ahora una pasantía.
-     */
-    public function evaluar($idPasantia)
-    {
-        $coordinacion = $this->obtenerCoordinacion();
-
-        $pasantia = $this->pasantiasDeCarrera($coordinacion)
-            ->where('idPasantia', $idPasantia)
-            ->firstOrFail();
-
-        $redireccion = redirect()->route('coordinador.alertas.show', $pasantia->idPasantia);
-
-        try {
-            $evaluacion = $this->evaluador->evaluar($pasantia->idPasantia);
-        } catch (PDOException $e) {
-            throw $e;
-        } catch (RuntimeException $e) {
-            return $redireccion->with('error', 'No se pudo evaluar: ' . $e->getMessage());
-        }
-
-        if ($evaluacion->estadoEvaluacion !== RiskEvaluator::ESTADO_CORRECTA) {
-            return $redireccion->with('error', 'No se pudo calcular el riesgo: ' . $evaluacion->errorConfiguracion
-                . ' Corrígelo en "Reglas parametrizables".');
-        }
-
-        return $redireccion->with('success', 'Evaluación actualizada.');
+        return $avisos;
     }
 
     /**

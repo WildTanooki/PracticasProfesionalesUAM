@@ -66,29 +66,13 @@
                         </a>
                     </p>
                 </div>
-
-                @if ($pasantia->estado === 'En progreso')
-                    <form method="POST" action="{{ route('coordinador.alertas.evaluar-pasantia', $pasantia->idPasantia) }}">
-                        @csrf
-                        <button type="submit"
-                                class="inline-flex items-center gap-2 rounded-lg bg-[#5b9eaa] px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-[#4c848f]">
-                            Evaluar ahora
-                        </button>
-                    </form>
-                @endif
             </section>
 
-            @if (session('success'))
-                <div class="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
-                    {{ session('success') }}
+            @foreach ($avisos as $aviso)
+                <div class="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                    No se pudo evaluar: {{ $aviso }}
                 </div>
-            @endif
-
-            @if (session('error'))
-                <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800" role="alert">
-                    {{ session('error') }}
-                </div>
-            @endif
+            @endforeach
 
             {{-- Estudiante, práctica y nivel --}}
             <section class="grid gap-4 lg:grid-cols-3">
@@ -153,7 +137,7 @@
                     <p class="mt-1">{{ $evaluacion->errorConfiguracion }}</p>
                     <p class="mt-1">
                         Corrígelo en <a href="{{ route('coordinador.reglas') }}" class="font-semibold underline">Reglas parametrizables</a>
-                        y vuelve a evaluar.
+                        y la evaluación se actualizará sola.
                     </p>
                 </div>
             @endif

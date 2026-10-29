@@ -261,20 +261,10 @@ Route::middleware('auth')->group(function () {
         'index'
     ])->name('coordinador.alertas');
 
-    Route::post('/coordinador/alertas/evaluar', [
-        AlertaRiesgoCoordinadorController::class,
-        'evaluarTodas'
-    ])->name('coordinador.alertas.evaluar');
-
     Route::get('/coordinador/alertas/{idPasantia}', [
         AlertaRiesgoCoordinadorController::class,
         'show'
     ])->whereNumber('idPasantia')->name('coordinador.alertas.show');
-
-    Route::post('/coordinador/alertas/{idPasantia}/evaluar', [
-        AlertaRiesgoCoordinadorController::class,
-        'evaluar'
-    ])->whereNumber('idPasantia')->name('coordinador.alertas.evaluar-pasantia');
 
     // Reglas parametrizables del motor de riesgo
     Route::get('/coordinador/reglas', [
