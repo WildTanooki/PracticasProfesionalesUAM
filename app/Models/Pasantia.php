@@ -73,4 +73,22 @@ class Pasantia extends Model
             'idPasantia'
         );
     }
+
+    // Una pasantía puede tener muchos registros de horas asociados.
+    public function registrosDeHoras(): HasMany
+    {
+        return $this->hasMany(
+            RegistroDeHoras::class,
+            'idPasantia',
+            'idPasantia'
+        );
+    }
+    
+    //Calcula las horas correspondientes a registros aprobados.
+    public function getHorasAprobadasAttribute(): int
+    {
+    return (int) $this->registrosDeHoras()
+        ->where('estadoHoras', 'Aprobada')
+        ->sum('horasIngresadas');
+    }
 }

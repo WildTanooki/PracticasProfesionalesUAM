@@ -11,6 +11,7 @@ use App\Http\Controllers\Estudiante\CartaAprobacionController;
 use App\Http\Controllers\Estudiante\CartaRecomendacionController;
 use App\Http\Controllers\Estudiante\PasantiaController;
 use App\Http\Controllers\Estudiante\DocumentoController;
+use App\Http\Controllers\RegistroDeHorasController;
 
 use App\Http\Controllers\Coordinador\PasantiaCoordinadorController;
 use App\Http\Controllers\Coordinador\CartaAprobacionCoordinadorController;
@@ -18,6 +19,8 @@ use App\Http\Controllers\Coordinador\CartaRecomendacionCoordinadorController;
 use App\Http\Controllers\Coordinador\DocumentoCoordinadorController;
 use App\Http\Controllers\Coordinador\HomeController;
 use App\Http\Controllers\Coordinador\ReglaRiesgoCoordinadorController;
+
+use App\Http\Controllers\Tutor\PasantiaTutorController;
 
 // Mostrar el formulario de inicio de sesión
 Route::get('/login', [AuthController::class, 'mostrarLogin'])
@@ -150,6 +153,12 @@ Route::middleware('auth')->group(function () {
     [DocumentoController::class, 'descargar']
     )->name('estudiante.documentos.descargar');
 
+    // Registrar horas como estudiante.
+    Route::post(
+        '/estudiante/registro-horas',
+        [RegistroDeHorasController::class, 'storeEstudiante']
+    )->name('estudiante.registro-horas.store');
+
 
     // -------------------------------------------
     // |Aquí comienzan las rutas del coordinador.|
@@ -275,19 +284,51 @@ Route::middleware('auth')->group(function () {
         'update'
     ])->whereNumber('idReglaRiesgo')->name('coordinador.reglas.update');
 
-    // Rutas de provisionales para el coordinador
-    $rutasCoordinador = [
-        'alertas' => 'Alertas y riesgos',
-    ];
-    foreach ($rutasCoordinador as $ruta => $descripcion) {
-        Route::get("/coordinador/{$ruta}", function () {
-            abort_unless(auth()->user()->rol === 'Coordinador', 403);
+        // -------------------------------------------
+        // |Aquí comienzan las rutas del tutor.|
+        // -------------------------------------------
+        // Dashboard del tutor: indicadores y tarjetas de pasantías.
+        Route::get('/tutor/home', [
+            PasantiaTutorController::class,
+            'index',
+            ])->middleware('auth')->name('tutor.home');
+            
+        // Detalle de una pasantía.
+        Route::get('/tutor/pasantias/{idPasantia}', [
+            PasantiaTutorController::class,
+            'show',
+        ])->middleware('auth')->name('tutor.pasantias.show');
 
-            return redirect()->route('coordinador.home');
-        })->name("coordinador.{$ruta}");
-    }
+        // El tutor registra horas que quedan aprobadas.
+        Route::post(
+            '/tutor/pasantias/registrar-horas',
+            [RegistroDeHorasController::class, 'storeTutor']
+            )->name('tutor.registro-horas.store');
+            
+        // El tutor aprueba varios registros pendientes.
+        Route::post(
+            '/tutor/pasantias/{idPasantia}/aprobar-horas',
+            [RegistroDeHorasController::class, 'aprobarMultiples']
+        )->name('tutor.registro-horas.aprobar-multiples');
 
-    // Cerrar sesión
-    Route::post('/logout', [AuthController::class, 'cerrarSesion'])
-        ->name('logout');
+        Route::put(
+            '/registros-horas/{idRegistro}',
+            [RegistroDeHorasController::class, 'update']
+        )->name('horas.update');
+
+        // Rutas de provisionales para el coordinador
+        $rutasCoordinador = [
+            'alertas' => 'Alertas y riesgos',
+        ];
+        foreach ($rutasCoordinador as $ruta => $descripcion) {
+            Route::get("/coordinador/{$ruta}", function () {
+                abort_unless(auth()->user()->rol === 'Coordinador', 403);
+    
+                return redirect()->route('coordinador.home');
+            })->name("coordinador.{$ruta}");
+        }
+    
+        // Cerrar sesión
+        Route::post('/logout', [AuthController::class, 'cerrarSesion'])
+            ->name('logout');
 });

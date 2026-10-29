@@ -91,7 +91,7 @@
 
                                 @php
                                     $requeridas = max(0, (int) $pasantia->horasRequeridas);
-                                    $acumuladas = max(0, (int) $pasantia->horasAcumuladas);
+                                    $acumuladas = max(0, (int) ($pasantia->total_horas_aprobadas ?? 0));
 
                                     $porcentaje = $requeridas > 0
                                         ? min(100, (int) round(($acumuladas / $requeridas) * 100))

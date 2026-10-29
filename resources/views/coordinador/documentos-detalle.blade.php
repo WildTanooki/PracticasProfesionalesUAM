@@ -169,10 +169,8 @@
                     'rutaDescarga' => 'coordinador.documentos.descargar',
                 ])
             </div>
-
         </main>
     </div>
 </div>
-
 </body>
 </html>
