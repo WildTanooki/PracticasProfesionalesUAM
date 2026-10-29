@@ -142,9 +142,8 @@
                             <tr class="hover:bg-slate-50">
                                 <td class="px-5 py-4">
                                     <p class="font-semibold text-slate-800">
-                                        {{ $documento->formato?->nombre ?? 'Documento #' . $documento->idDocumento }}
+                                        {{ $documento->formato?->nombreFormato ?? 'Documento #' . $documento->idDocumento }}
                                     </p>
-                                    <p class="mt-1 text-xs text-slate-500">ID: {{ $documento->idDocumento }}</p>
                                 </td>
                                 <td class="px-5 py-4">
                                     @php

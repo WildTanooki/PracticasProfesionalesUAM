@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\CoordinacionAcademica;
 use App\Models\Documento;
 use App\Models\Pasantia;
+use App\Models\RegistroDeHoras;
 use App\Services\GestionDocumentalService;
 use Illuminate\Http\Request;
 
@@ -69,6 +70,7 @@ class HomeController extends Controller
         )
             ->with([
                 'documentos.formato',
+                'registrosDeHoras',
                 'practicaProfesional.estudiante.usuario',
                 'practicaProfesional.estudiante.planEstudios.carrera',
             ])
