@@ -302,7 +302,19 @@ class ReglaRiesgoCoordinadorTest extends TestCase
             ->assertSee('Regla general')
             ->assertDontSee('Regla de otra carrera')
             ->assertSee($propia->codigo)
-            ->assertSee('Documentos rechazados');
+            ->assertSee('La cantidad de documentos rechazados es mayor que 0');
+    }
+
+    public function test_la_condicion_se_lee_como_frase(): void
+    {
+        $this->assertSame(
+            'los días que faltan para la fecha final de la pasantía son mayores o iguales que 2',
+            \App\Services\RulesEngine\RiskVariables::frase('dias_restantes', '>=', '2')
+        );
+        $this->assertSame(
+            'el porcentaje de documentos aprobados es menor que 10%',
+            \App\Services\RulesEngine\RiskVariables::frase('porcentaje_documental_completado', '<', '10')
+        );
     }
 
     public function test_filtra_por_busqueda_y_estado(): void

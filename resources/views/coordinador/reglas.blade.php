@@ -49,20 +49,16 @@
 
     $coloresNivel = ['bg-emerald-100 text-emerald-800', 'bg-amber-100 text-amber-800', 'bg-red-100 text-red-800', 'bg-rose-200 text-rose-900'];
 
-    $resumenCondiciones = function ($regla) use ($operadores) {
+    $resumenCondiciones = function ($regla) {
         $conector = $regla->condiciones->first()?->conector === 'OR' ? ' o ' : ' y ';
 
-        return $regla->condiciones
-            ->map(function ($condicion) use ($operadores) {
-                $unidad = RiskVariables::unidad($condicion->variable);
-                $valor = $unidad === '%'
-                    ? $condicion->parametro . '%'
-                    : trim($condicion->parametro . ' ' . ($unidad === 'documentos' || $unidad === 'días' ? '' : $unidad));
-
-                return RiskVariables::etiqueta($condicion->variable) . ' '
-                    . ($operadores[$condicion->operador] ?? $condicion->operador) . ' ' . $valor;
-            })
-            ->implode($conector);
+        return ucfirst($regla->condiciones
+            ->map(fn ($condicion) => RiskVariables::frase(
+                $condicion->variable,
+                $condicion->operador,
+                $condicion->parametro
+            ))
+            ->implode($conector));
     };
 
     $hayFiltros = ($filtros['buscar'] ?? null) || ($filtros['estado'] ?? null);
@@ -76,6 +72,7 @@
         vacia: {{ Js::from($reglaVacia) }},
         variables: {{ Js::from($variables) }},
         operadores: {{ Js::from($operadores) }},
+        operadoresPlural: {{ Js::from(RiskVariables::OPERADORES_PLURAL) }},
         rutaCrear: {{ Js::from(route('coordinador.reglas.store')) }},
         rutaEditar: {{ Js::from(route('coordinador.reglas.update', ['idReglaRiesgo' => '__ID__'])) }},
         nueva() {
@@ -97,14 +94,16 @@
         },
         resumen() {
             const union = this.regla.conector === 'OR' ? ' o ' : ' y ';
-            const partes = this.regla.condiciones.map(c =>
-                (this.variables[c.variable]?.etiqueta ?? '…').toLowerCase() + ' ' +
-                (this.operadores[c.operador] ?? '…') + ' ' + (c.parametro === '' ? '…' : c.parametro) +
-                (this.unidad(c.variable) === '%' ? '%' : ' ' + this.unidad(c.variable))
-            );
+            const partes = this.regla.condiciones.map(c => {
+                const v = this.variables[c.variable];
+                if (!v) return '…';
+                const operador = (v.plural ? this.operadoresPlural : this.operadores)[c.operador] ?? '…';
+                const valor = c.parametro === '' ? '…' : c.parametro + (v.unidad === '%' ? '%' : '');
+                return v.frase + ' ' + (v.plural ? 'son' : 'es') + ' ' + operador + ' ' + valor;
+            });
             const puntos = this.regla.puntuacion === '' ? '…' : this.regla.puntuacion;
             const por = this.regla.variablePuntuacion
-                ? ' por cada unidad de «' + (this.variables[this.regla.variablePuntuacion]?.etiqueta ?? '') + '»'
+                ? ' ' + (this.variables[this.regla.variablePuntuacion]?.porCada ?? '')
                 : '';
             return 'Si ' + partes.join(union) + ', suma ' + puntos + ' puntos' + por + '.';
         }
@@ -339,7 +338,7 @@
                                         +{{ rtrim(rtrim((string) $regla->puntuacion, '0'), '.') }}
                                         @if ($regla->variablePuntuacion)
                                             <p class="text-xs font-normal text-slate-500">
-                                                × {{ RiskVariables::etiqueta($regla->variablePuntuacion) }}
+                                                {{ RiskVariables::VARIABLES[$regla->variablePuntuacion]['porCada'] ?? $regla->variablePuntuacion }}
                                             </p>
                                         @endif
                                     </td>
