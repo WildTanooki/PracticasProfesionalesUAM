@@ -101,6 +101,18 @@ class AlertaRiesgoCoordinadorController extends Controller
                     : null;
             });
 
+        // Primero el nivel más alto; dentro de cada nivel, más puntos
+        // primero. Al final las que tienen error o no se evaluaron.
+        $rango = $niveles->pluck('nivel')->flip();
+
+        $pasantias = $pasantias
+            ->sortBy([
+                fn ($a, $b) => ($rango[$b->nivelActual] ?? -1) <=> ($rango[$a->nivelActual] ?? -1),
+                fn ($a, $b) => (float) $b->ultimaEvaluacionRiesgo?->puntuacionTotal
+                    <=> (float) $a->ultimaEvaluacionRiesgo?->puntuacionTotal,
+            ])
+            ->values();
+
         // Los conteos se calculan antes de filtrar.
         $conteos = $pasantias->countBy('nivelActual');
 

@@ -314,6 +314,19 @@ class AlertaRiesgoCoordinadorTest extends TestCase
         $this->assertSame(['Alto' => 1, 'Bajo' => 1], $respuesta->viewData('conteos')->sortKeys()->all());
     }
 
+    public function test_ordena_del_riesgo_mas_alto_al_mas_bajo(): void
+    {
+        // Luis (pasantía 2, Bajo) tiene un id mayor, pero Ana (Alto) va primero.
+        $this->actingAs($this->coordinador)
+            ->get(route('coordinador.alertas'))
+            ->assertOk()
+            ->assertSeeInOrder(['Ana López', 'Luis Pérez']);
+
+        $this->assertSame([1, 2], $this->actingAs($this->coordinador)
+            ->get(route('coordinador.alertas'))
+            ->viewData('pasantias')->pluck('idPasantia')->all());
+    }
+
     public function test_si_nada_cambia_no_guarda_otra_evaluacion(): void
     {
         $this->actingAs($this->coordinador)->get(route('coordinador.alertas'));
