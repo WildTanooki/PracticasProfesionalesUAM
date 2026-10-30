@@ -327,18 +327,6 @@ Route::middleware('auth')->group(function () {
             '/registros-horas/{idRegistro}',
             [RegistroDeHorasController::class, 'update']
         )->name('horas.update');
-
-        // Rutas de provisionales para el coordinador
-        $rutasCoordinador = [
-            'alertas' => 'Alertas y riesgos',
-        ];
-        foreach ($rutasCoordinador as $ruta => $descripcion) {
-            Route::get("/coordinador/{$ruta}", function () {
-                abort_unless(auth()->user()->rol === 'Coordinador', 403);
-    
-                return redirect()->route('coordinador.home');
-            })->name("coordinador.{$ruta}");
-        }
     
         // Cerrar sesión
         Route::post('/logout', [AuthController::class, 'cerrarSesion'])
