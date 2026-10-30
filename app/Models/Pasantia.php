@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Pasantia extends Model
 {
@@ -72,5 +73,25 @@ class Pasantia extends Model
             'idPasantia',
             'idPasantia'
         );
+    }
+
+    // Evaluaciones de riesgo de la pasantía (historial).
+    public function evaluacionesRiesgo(): HasMany
+    {
+        return $this->hasMany(
+            EvaluacionRiesgo::class,
+            'idPasantia',
+            'idPasantia'
+        );
+    }
+
+    // Evaluación de riesgo más reciente.
+    public function ultimaEvaluacionRiesgo(): HasOne
+    {
+        return $this->hasOne(
+            EvaluacionRiesgo::class,
+            'idPasantia',
+            'idPasantia'
+        )->latestOfMany('idEvaluacionRiesgo');
     }
 }
