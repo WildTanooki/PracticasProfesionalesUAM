@@ -16,6 +16,11 @@ class PasantiaController extends Controller
             ->whereHas('practicaProfesional', function ($query) use ($credencial) {
                 $query->where('cif', $credencial);
             })
+            ->withSum([
+                'registrosDeHoras as total_horas_aprobadas' => function ($query) {
+                    $query->where('estadoHoras', 'Aprobada');
+                }
+            ], 'horasIngresadas')
             ->orderByRaw("
                 CASE
                     WHEN estado = 'En progreso' THEN 0
@@ -28,21 +33,23 @@ class PasantiaController extends Controller
         return view('estudiante.pasantias', compact('pasantias'));
     }
 
-
     public function show(Request $request, $idPasantia)
     {
         $credencial = $request->user()->credencial;
-
-        $pasantia = Pasantia::with('documentos.formato')
+    
+        $pasantia = Pasantia::with([
+                'documentos.formato',
+                'registrosDeHoras',
+            ])
             ->where('idPasantia', $idPasantia)
             ->whereHas('practicaProfesional', function ($query) use ($credencial) {
                 $query->where('cif', $credencial);
             })
             ->firstOrFail();
-
-        return view('estudiante.pasantias-detalle', compact('pasantia'));
+    
+        return view(
+            'estudiante.pasantias-detalle',
+            compact('pasantia')
+        );
     }
-
-
-
 }

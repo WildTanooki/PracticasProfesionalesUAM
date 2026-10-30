@@ -141,7 +141,12 @@
 
                                 $carrera = $estudiante?->planEstudios?->carrera?->nombre ?? 'Sin carrera';
                                 $empresa = $pasantia->empresa ?: 'Sin empresa';
-                                $horas = $pasantia->horasAcumuladas ?? 0;
+                                $horas = max(
+                                    0,
+                                    (int) $pasantia->registrosDeHoras
+                                        ->where('estadoHoras', 'Aprobada')
+                                        ->sum('horasIngresadas')
+                                );
                                 $totalFormatos = (int) ($pasantia->totalFormatos ?? 0);
                                 $entregados = (int) ($pasantia->documentosEntregados ?? 0);
                                 $aprobadosPasantia = (int) ($pasantia->documentosAprobados ?? 0);

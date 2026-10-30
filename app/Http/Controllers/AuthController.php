@@ -48,6 +48,10 @@ class AuthController extends Controller
             return redirect()->route('coordinador.home');
         }
 
+        if ($usuario->rol === 'Tutor') {
+            return redirect()->route('tutor.home');
+        }
+
         // No mantener abierta una sesión si el rol aún no tiene ruta
         Auth::logout();
 

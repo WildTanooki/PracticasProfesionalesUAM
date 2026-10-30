@@ -11,6 +11,7 @@ use App\Http\Controllers\Estudiante\CartaAprobacionController;
 use App\Http\Controllers\Estudiante\CartaRecomendacionController;
 use App\Http\Controllers\Estudiante\PasantiaController;
 use App\Http\Controllers\Estudiante\DocumentoController;
+use App\Http\Controllers\RegistroDeHorasController;
 
 use App\Http\Controllers\Coordinador\PasantiaCoordinadorController;
 use App\Http\Controllers\Coordinador\CartaAprobacionCoordinadorController;
@@ -19,6 +20,8 @@ use App\Http\Controllers\Coordinador\DocumentoCoordinadorController;
 use App\Http\Controllers\Coordinador\HomeController;
 use App\Http\Controllers\Coordinador\ReglaRiesgoCoordinadorController;
 use App\Http\Controllers\Coordinador\AlertaRiesgoCoordinadorController;
+
+use App\Http\Controllers\Tutor\PasantiaTutorController;
 
 // Mostrar el formulario de inicio de sesión
 Route::get('/login', [AuthController::class, 'mostrarLogin'])
@@ -150,6 +153,12 @@ Route::middleware('auth')->group(function () {
     '/estudiante/documentos/versiones/{idHistorial}/descargar',
     [DocumentoController::class, 'descargar']
     )->name('estudiante.documentos.descargar');
+
+    // Registrar horas como estudiante.
+    Route::post(
+        '/estudiante/registro-horas',
+        [RegistroDeHorasController::class, 'storeEstudiante']
+    )->name('estudiante.registro-horas.store');
 
 
     // -------------------------------------------
@@ -287,7 +296,39 @@ Route::middleware('auth')->group(function () {
         'update'
     ])->whereNumber('idReglaRiesgo')->name('coordinador.reglas.update');
 
-    // Cerrar sesión
-    Route::post('/logout', [AuthController::class, 'cerrarSesion'])
-        ->name('logout');
+        // -------------------------------------------
+        // |Aquí comienzan las rutas del tutor.|
+        // -------------------------------------------
+        // Dashboard del tutor: indicadores y tarjetas de pasantías.
+        Route::get('/tutor/home', [
+            PasantiaTutorController::class,
+            'index',
+            ])->middleware('auth')->name('tutor.home');
+            
+        // Detalle de una pasantía.
+        Route::get('/tutor/pasantias/{idPasantia}', [
+            PasantiaTutorController::class,
+            'show',
+        ])->middleware('auth')->name('tutor.pasantias.show');
+
+        // El tutor registra horas que quedan aprobadas.
+        Route::post(
+            '/tutor/pasantias/registrar-horas',
+            [RegistroDeHorasController::class, 'storeTutor']
+            )->name('tutor.registro-horas.store');
+            
+        // El tutor aprueba varios registros pendientes.
+        Route::post(
+            '/tutor/pasantias/{idPasantia}/aprobar-horas',
+            [RegistroDeHorasController::class, 'aprobarMultiples']
+        )->name('tutor.registro-horas.aprobar-multiples');
+
+        Route::put(
+            '/registros-horas/{idRegistro}',
+            [RegistroDeHorasController::class, 'update']
+        )->name('horas.update');
+    
+        // Cerrar sesión
+        Route::post('/logout', [AuthController::class, 'cerrarSesion'])
+            ->name('logout');
 });
