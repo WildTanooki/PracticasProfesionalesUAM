@@ -19,6 +19,7 @@ use App\Http\Controllers\Coordinador\CartaRecomendacionCoordinadorController;
 use App\Http\Controllers\Coordinador\DocumentoCoordinadorController;
 use App\Http\Controllers\Coordinador\HomeController;
 use App\Http\Controllers\Coordinador\ReglaRiesgoCoordinadorController;
+use App\Http\Controllers\Coordinador\AlertaRiesgoCoordinadorController;
 
 use App\Http\Controllers\Tutor\PasantiaTutorController;
 
@@ -262,6 +263,17 @@ Route::middleware('auth')->group(function () {
         DocumentoCoordinadorController::class,
         'descargar'
     ])->name('coordinador.documentos.descargar');
+
+    // Alertas y riesgos de las pasantías
+    Route::get('/coordinador/alertas', [
+        AlertaRiesgoCoordinadorController::class,
+        'index'
+    ])->name('coordinador.alertas');
+
+    Route::get('/coordinador/alertas/{idPasantia}', [
+        AlertaRiesgoCoordinadorController::class,
+        'show'
+    ])->whereNumber('idPasantia')->name('coordinador.alertas.show');
 
     // Reglas parametrizables del motor de riesgo
     Route::get('/coordinador/reglas', [

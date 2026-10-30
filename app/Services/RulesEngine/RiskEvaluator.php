@@ -50,8 +50,44 @@ class RiskEvaluator
         // Los errores de la pasantía se lanzan antes de guardar nada.
         $contexto = $this->contextBuilder->build($idPasantia);
 
-        return DB::transaction(function () use ($idPasantia, $contexto) {
-            $version = $this->versionActual();
+        return $this->guardar($idPasantia, $contexto, $this->versionActual());
+    }
+
+    /**
+     * Evaluar una pasantía solo si algo cambió desde su última
+     * evaluación: sus documentos, los días que faltan o la configuración
+     * de reglas y umbrales. Si nada cambió, devuelve la última, así el
+     * historial solo guarda cambios reales.
+     *
+     * @throws \RuntimeException si la pasantía no se puede evaluar.
+     */
+    public function evaluarSiCambio(int $idPasantia): EvaluacionRiesgo
+    {
+        $contexto = $this->contextBuilder->build($idPasantia);
+        $version = $this->versionActual();
+
+        $ultima = EvaluacionRiesgo::where('idPasantia', $idPasantia)
+            ->latest('idEvaluacionRiesgo')
+            ->first();
+
+        // Comparación flexible: el JSON guardado convierte 25.0 en 25.
+        if (
+            $ultima
+            && $ultima->versionConfiguracion === $version->versionConfiguracion
+            && $ultima->contextoEvaluado == $contexto
+        ) {
+            return $ultima;
+        }
+
+        return $this->guardar($idPasantia, $contexto, $version);
+    }
+
+    private function guardar(
+        int $idPasantia,
+        array $contexto,
+        VersionConfiguracionRiesgo $version
+    ): EvaluacionRiesgo {
+        return DB::transaction(function () use ($idPasantia, $contexto, $version) {
 
             $datosBase = [
                 'idPasantia' => $idPasantia,
