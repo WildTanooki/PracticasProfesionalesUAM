@@ -15,11 +15,11 @@ class RiskContextBuilder
         ])->findOrFail($idPasantia);
 
         // Validar que la pasantía esté en progreso.
-        if ($pasantia->estado !== 'En progreso') {
-            throw new \RuntimeException(
-                'Solo se pueden evaluar pasantías en progreso.'
-                );
-        }
+        //if ($pasantia->estado !== 'En progreso') {
+        //    throw new \RuntimeException(
+        //        'Solo se pueden evaluar pasantías en progreso.'
+        //    );
+        //}
 
         // Obtener la carrera a la que pertenece el estudiante.
         $idCarrera = $pasantia

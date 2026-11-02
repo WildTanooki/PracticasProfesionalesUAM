@@ -64,13 +64,7 @@ class RegistroDeHorasController extends Controller
             $pasantia,
             $datos['fechaRegistro']
         );
-    
-        // Solo se permiten registros en pasantías en progreso.
-        abort_unless(
-            $pasantia->estado === 'En progreso',
-            422,
-            'La pasantía no está en progreso.'
-        );
+
     
         // Impedir más de un registro por fecha y pasantía.
         $existeRegistro = RegistroDeHoras::where(
@@ -154,12 +148,6 @@ class RegistroDeHorasController extends Controller
             'No tienes asignada esta pasantía.'
         );
 
-        abort_unless(
-            $pasantia->estado === 'En progreso',
-            422,
-            'La pasantía no está en progreso.'
-        );
-
         $this->validarPeriodoPasantia(
             $pasantia,
             $datos['fechaRegistro']
@@ -229,12 +217,6 @@ class RegistroDeHorasController extends Controller
             ->where('idPasantia', $idPasantia)
             ->where('idTutor', $request->user()->credencial)
             ->firstOrFail();
-
-        abort_unless(
-            $pasantia->estado === 'En progreso',
-            422,
-            'La pasantía no está en progreso.'
-        );
 
         DB::transaction(function () use (
             $datos,
