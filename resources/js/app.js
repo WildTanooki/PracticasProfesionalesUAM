@@ -25,7 +25,12 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
-    let indiceActual = 0;
+    // La vista indica en qué práctica abre el carrusel.
+    const indiceInicial = Number(
+        document.querySelector('[data-practica-inicial]')?.dataset.practicaInicial ?? 0
+    ) || 0;
+
+    let indiceActual = indiceInicial;
 
     function mostrarPractica(indice) {
         indiceActual = (indice + tarjetas.length) % tarjetas.length;
@@ -67,5 +72,5 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    mostrarPractica(0);
+    mostrarPractica(indiceInicial);
 });
