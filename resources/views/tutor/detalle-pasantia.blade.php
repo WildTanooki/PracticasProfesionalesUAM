@@ -322,7 +322,6 @@
                             </p>
                         </div>
 
-                        @if ($pasantia->estado === 'En progreso')
                             <div class="flex flex-wrap gap-2">
 
                                 <button
@@ -347,7 +346,6 @@
                                 </button>
 
                             </div>
-                        @endif
 
                     </div>
 

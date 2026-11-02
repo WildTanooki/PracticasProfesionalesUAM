@@ -324,7 +324,6 @@
                                     {{ $pasantia->registrosDeHoras->count() }}
                                 </span>
 
-                                @if ($pasantia->estado === 'En progreso')
                                     <button
                                         type="button"
                                         @click="openRegistroHoras = true"
@@ -333,7 +332,7 @@
                                         <span class="text-lg leading-none">+</span>
                                         Registrar horas
                                     </button>
-                                @endif
+
                             </div>
                         </div>
 
