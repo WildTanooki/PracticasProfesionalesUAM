@@ -169,22 +169,23 @@ class DashboardController extends Controller
     }
 
     /**
-     * Cuántos formatos requeridos están aprobados, en revisión, por
-     * corregir, rechazados o sin entregar.
+     * Estado documental de la pasantía. Se calcula sobre los mismos
+     * documentos que muestra la tabla (todos los enviados, aunque su
+     * formato ya no esté activo) más los formatos requeridos que el
+     * estudiante todavía no ha enviado.
      */
     private function resumenDocumental(Collection $formatos, Collection $documentos): array
     {
-        $porFormato = $documentos->keyBy('idFormato');
+        $enviados = $documentos->pluck('idFormato')->filter()->unique();
 
         $faltantes = $formatos
-            ->reject(fn ($formato) => $porFormato->has($formato->idFormato))
+            ->reject(fn ($formato) => $enviados->contains($formato->idFormato))
             ->pluck('nombreFormato')
             ->values();
 
-        $requeridos = $formatos->pluck('idFormato');
-        $estados = $porFormato->only($requeridos->all())->countBy('estadoArchivo');
+        $estados = $documentos->countBy('estadoArchivo');
 
-        $total = $formatos->count();
+        $total = $documentos->count() + $faltantes->count();
         $aprobados = (int) ($estados['Aprobado'] ?? 0);
 
         return [

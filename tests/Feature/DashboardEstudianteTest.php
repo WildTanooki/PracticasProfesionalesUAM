@@ -271,12 +271,34 @@ class DashboardEstudianteTest extends TestCase
 
         $respuesta->assertSeeInOrder(['Reporte de horas', '20/08/2026', 'A corregir']);
         $respuesta->assertSeeInOrder(['Matriz de actividades', '07/08/2026', 'Aprobado']);
-        $respuesta->assertSee('1 de 3 documentos requeridos aprobados');
+        $respuesta->assertSee('1 de 3 documentos aprobados');
 
         $respuesta->assertViewHas('documentos', fn ($documentos) => $documentos->pluck('idDocumento')->sort()->values()->all() === [1, 2]);
         $respuesta->assertViewHas('resumenDocumental', fn ($resumen) => $resumen['aprobados'] === 1
             && $resumen['aCorregir'] === 1
             && $resumen['faltantes']->all() === ['Informe final']);
+    }
+
+    public function test_el_resumen_coincide_con_la_tabla_aunque_un_formato_este_inactivo(): void
+    {
+        // Documento aprobado de un formato que luego se desactivó.
+        DB::table('formatos')->insert([
+            'idFormato' => 4, 'nombreFormato' => 'Carta de recursos humanos', 'idCoordinador' => 'COO0001', 'estado' => 'Inactivo',
+        ]);
+        DB::table('documentos')->insert([
+            'idDocumento' => 5, 'idFormato' => 4, 'estadoArchivo' => 'Aprobado', 'idPasantia' => 2,
+        ]);
+        DB::table('documento_historial')->insert([
+            'idDocumento' => 5, 'archivo' => 'e.pdf', 'version' => 1, 'estadoArchivo' => 'Aprobado', 'fechaEnvio' => '2026-08-01 09:00:00',
+        ]);
+
+        $respuesta = $this->actingAs($this->estudiante)->get(route('estudiante.home'));
+
+        // 3 enviados + 1 sin entregar; 2 aprobados.
+        $respuesta->assertSee('2 de 4 documentos aprobados');
+        $respuesta->assertSee('Aprobados: 2');
+        $respuesta->assertSee('Sin entregar: 1');
+        $respuesta->assertSeeInOrder(['Carta de recursos humanos', 'Informe final', 'Sin entregar', 'Subir']);
     }
 
     public function test_muestra_solo_las_alertas_del_estudiante(): void

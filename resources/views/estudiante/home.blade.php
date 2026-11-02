@@ -413,7 +413,7 @@
                                     <h2 id="titulo-documentos" class="text-lg font-bold text-slate-800">Documentos enviados</h2>
                                     @if ($resumenDocumental['total'] > 0)
                                         <p class="text-xs text-slate-500">
-                                            {{ $resumenDocumental['aprobados'] }} de {{ $resumenDocumental['total'] }} documentos requeridos aprobados
+                                            {{ $resumenDocumental['aprobados'] }} de {{ $resumenDocumental['total'] }} documentos aprobados
                                         </p>
                                     @endif
                                 </div>
@@ -472,7 +472,7 @@
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-slate-100">
-                                    @forelse ($documentos as $documento)
+                                    @foreach ($documentos as $documento)
                                         @php
                                             $estado = $estadosDocumento[$documento->estadoArchivo]
                                                 ?? ['texto' => $documento->estadoArchivo, 'clase' => 'bg-slate-100 text-slate-600'];
@@ -493,7 +493,7 @@
                                             <td class="px-4 py-3">
                                                 <div class="flex items-center gap-4 text-sm">
                                                     <a href="{{ route('estudiante.documentos.show', $documento->idDocumento) }}"
-                                                       class="inline-flex items-center gap-1 text-slate-700 hover:text-[#5b9eaa]">
+                                                       class="inline-flex items-center gap-1 rounded text-slate-700 hover:text-[#5b9eaa] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#5b9eaa]">
                                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                                                             <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/>
                                                             <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -503,7 +503,7 @@
 
                                                     @if ($gestionDocumental->permiteReenvio($documento))
                                                         <a href="{{ route('estudiante.documentos.show', $documento->idDocumento) }}"
-                                                           class="inline-flex items-center gap-1 text-slate-700 hover:text-[#5b9eaa]">
+                                                           class="inline-flex items-center gap-1 rounded text-slate-700 hover:text-[#5b9eaa] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#5b9eaa]">
                                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/>
                                                             </svg>
@@ -513,13 +513,37 @@
                                                 </div>
                                             </td>
                                         </tr>
-                                    @empty
+                                    @endforeach
+
+                                    {{-- Formatos requeridos que aún no se han enviado --}}
+                                    @foreach ($resumenDocumental['faltantes'] as $faltante)
+                                        <tr>
+                                            <td class="px-4 py-3 text-slate-800">{{ $faltante }}</td>
+                                            <td class="px-4 py-3 text-slate-400">—</td>
+                                            <td class="px-4 py-3">
+                                                <span class="inline-block rounded-md bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600">
+                                                    Sin entregar
+                                                </span>
+                                            </td>
+                                            <td class="px-4 py-3">
+                                                <a href="{{ route('estudiante.documentos', ['pasantia' => $pasantia->idPasantia]) }}"
+                                                   class="inline-flex items-center gap-1 rounded text-sm text-slate-700 hover:text-[#5b9eaa] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#5b9eaa]">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V7.5m0 0l-3.75 3.75M12 7.5l3.75 3.75M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5"/>
+                                                    </svg>
+                                                    Subir
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+
+                                    @if ($resumenDocumental['total'] === 0)
                                         <tr>
                                             <td colspan="4" class="px-4 py-8 text-center text-sm text-slate-500">
                                                 Aún no has enviado documentos para esta pasantía.
                                             </td>
                                         </tr>
-                                    @endforelse
+                                    @endif
                                 </tbody>
                             </table>
                         </div>
