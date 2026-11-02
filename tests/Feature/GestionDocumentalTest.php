@@ -134,6 +134,17 @@ class GestionDocumentalTest extends TestCase
             $tabla->unique(['idDocumento', 'version']);
             $tabla->foreign('idDocumento')->references('idDocumento')->on('documentos');
         });
+
+        // El estado de la pasantía se recalcula con las horas aprobadas.
+        Schema::create('registro_de_horas', function (Blueprint $tabla) {
+            $tabla->increments('idRegistro');
+            $tabla->date('fechaRegistro');
+            $tabla->unsignedInteger('horasIngresadas');
+            $tabla->string('observaciones', 200)->nullable();
+            $tabla->string('estadoHoras', 30)->default('Pendiente');
+            $tabla->unsignedInteger('idPasantia');
+            $tabla->string('idTutor', 30)->nullable();
+        });
     }
 
     private function crearDatos(): void
