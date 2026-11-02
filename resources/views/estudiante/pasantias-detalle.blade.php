@@ -78,7 +78,9 @@
 
                             $estilosEstado = match ($estado) {
                                 'En progreso' => 'bg-blue-50 text-blue-700',
-                                'Completada' => 'bg-emerald-50 text-emerald-700',
+                                'Culminada', 'Completada' => 'bg-emerald-50 text-emerald-700',
+                                'Pendiente de revisión' => 'bg-violet-50 text-violet-700',
+                                'Culminada con incumplimiento' => 'bg-red-50 text-red-700',
                                 'Pendiente' => 'bg-amber-50 text-amber-700',
                                 default => 'bg-white/90 text-slate-700',
                             };

@@ -70,7 +70,7 @@ class GestionDocumentalService
         $ruta = $this->guardarArchivo($pasantia, $formato, $archivo);
 
         try {
-            return DB::transaction(function () use ($pasantia, $formato, $ruta) {
+            $documento = DB::transaction(function () use ($pasantia, $formato, $ruta) {
                 $documento = Documento::where('idPasantia', $pasantia->idPasantia)
                     ->where('idFormato', $formato->idFormato)
                     ->lockForUpdate()
@@ -129,6 +129,11 @@ class GestionDocumentalService
 
             throw $e;
         }
+
+        // Con la entrega, la pasantía puede pasar a Pendiente de revisión.
+        $this->actualizarEstadoPasantia($pasantia->idPasantia);
+
+        return $documento;
     }
 
     /**
@@ -148,7 +153,7 @@ class GestionDocumentalService
             ]);
         }
 
-        return DB::transaction(function () use (
+        $revision = DB::transaction(function () use (
             $documento,
             $coordinacion,
             $versionRevisada,
@@ -191,6 +196,11 @@ class GestionDocumentalService
 
             return $ultima;
         });
+
+        // La revisión puede culminar la pasantía o regresarla a En progreso.
+        $this->actualizarEstadoPasantia($documento->idPasantia);
+
+        return $revision;
     }
 
     /**
@@ -218,6 +228,15 @@ class GestionDocumentalService
         $extension = pathinfo($version->archivo, PATHINFO_EXTENSION);
 
         return "{$nombre}_v{$version->version}.{$extension}";
+    }
+
+    /**
+     * Se resuelve aquí y no en el constructor porque
+     * EstadoPasantiaService depende de este servicio.
+     */
+    private function actualizarEstadoPasantia(int $idPasantia): void
+    {
+        app(EstadoPasantiaService::class)->actualizar($idPasantia);
     }
 
     private function validarReenvio(Documento $documento): void

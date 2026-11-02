@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\RegistroDeHoras;
 use App\Models\Pasantia;
+use App\Services\EstadoPasantiaService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -182,6 +183,8 @@ class RegistroDeHorasController extends Controller
             'idTutor' => $request->user()->credencial,
         ]);
 
+        $this->actualizarEstado($pasantia);
+
         return back()->with(
             'success',
             'Las horas se registraron y aprobaron correctamente.'
@@ -248,6 +251,8 @@ class RegistroDeHorasController extends Controller
                 ]);
         });
 
+        $this->actualizarEstado($pasantia);
+
         return back()->with(
             'success',
             'Los registros seleccionados fueron aprobados correctamente.'
@@ -298,12 +303,23 @@ class RegistroDeHorasController extends Controller
             ]);
         });
 
+        $this->actualizarEstado($pasantia);
+
         return back()->with(
             'success',
             'El registro de horas se actualizó correctamente.'
         );
     }
     
+    /**
+     * Recalcular el estado de la pasantía después de aprobar
+     * o rechazar horas.
+     */
+    private function actualizarEstado(Pasantia $pasantia): void
+    {
+        app(EstadoPasantiaService::class)->actualizar($pasantia);
+    }
+
     /**
      * Comprueba que la fecha de registro esté dentro
      * del período de la pasantía, inclusive.
