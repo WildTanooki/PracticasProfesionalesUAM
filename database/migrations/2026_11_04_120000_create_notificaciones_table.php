@@ -21,7 +21,7 @@ return new class extends Migration
             // usuarios.credencial para poder crear la clave foránea.
             $table->string('credencial', 30)
                 ->charset('utf8mb4')
-                ->collation('utf8mb4_0900_ai_ci');
+                ->collation('utf8mb4_0900_as_cs');
 
             // Documento y versión revisados.
             $table->unsignedInteger('idDocumento');
