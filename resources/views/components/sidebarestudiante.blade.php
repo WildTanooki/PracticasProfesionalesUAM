@@ -32,6 +32,11 @@
                 'icono' => 'home',
             ],
             [
+                'ruta' => 'estudiante.notificaciones',
+                'texto' => 'Notificaciones',
+                'icono' => 'bell',
+            ],
+            [
                 'ruta' => 'estudiante.recomendacion',
                 'texto' => 'Solicitar carta de recomendación',
                 'icono' => 'mail',
@@ -102,6 +107,17 @@
                                 <path d="m3 10 9-7 9 7"/>
                                 <path d="M5 9v12h14V9"/>
                                 <path d="M9 21v-8h6v8"/>
+                            </svg>
+                            @break
+
+                        @case('bell')
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                width="21" height="21" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor"
+                                stroke-width="1.8" stroke-linecap="round"
+                                stroke-linejoin="round" aria-hidden="true">
+                                <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
+                                <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
                             </svg>
                             @break
 
@@ -178,6 +194,14 @@
                 <span class="min-w-0 flex-1 leading-5">
                     {{ $item['texto'] }}
                 </span>
+
+                {{-- Notificaciones sin leer --}}
+                @if ($item['ruta'] === 'estudiante.notificaciones' && ($notificacionesNoLeidas ?? 0) > 0)
+                    <span class="rounded-full bg-red-500 px-2 py-0.5 text-xs font-bold text-white"
+                        aria-label="{{ $notificacionesNoLeidas }} sin leer">
+                        {{ $notificacionesNoLeidas > 99 ? '99+' : $notificacionesNoLeidas }}
+                    </span>
+                @endif
 
                 {{-- Flecha de la opción activa --}}
                 @if ($activo)

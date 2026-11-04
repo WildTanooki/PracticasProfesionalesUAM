@@ -138,7 +138,7 @@ class GestionDocumentalService
 
     /**
      * Registrar la revisión de Coordinación Académica sobre la versión
-     * indicada. No crea versiones nuevas.
+     * indicada y notificar al estudiante. No crea versiones nuevas.
      */
     public function revisar(
         Documento $documento,
@@ -193,6 +193,10 @@ class GestionDocumentalService
                 'idCoordinador' => $coordinacion->idCoordinador,
                 'fechaRevision' => now(),
             ]);
+
+            // Aviso interno al estudiante dentro de la misma transacción:
+            // si la notificación falla, la revisión tampoco se guarda.
+            app(NotificacionService::class)->documentoRevisado($documento, $ultima);
 
             return $ultima;
         });

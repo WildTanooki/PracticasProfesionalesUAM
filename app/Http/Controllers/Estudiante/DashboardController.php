@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Estudiante;
 use App\Http\Controllers\Controller;
 use App\Models\Documento;
 use App\Models\EvaluacionRiesgo;
+use App\Models\Notificacion;
 use App\Models\Pasantia;
 use App\Models\PracticaProfesional;
 use App\Models\UmbralRiesgo;
@@ -126,6 +127,17 @@ class DashboardController extends Controller
             ))
             : 0;
 
+        // Últimos avisos sobre la revisión de sus documentos.
+        $notificaciones = Notificacion::de($usuario->credencial)
+            ->orderByDesc('fechaCreacion')
+            ->orderByDesc('idNotificacion')
+            ->limit(5)
+            ->get();
+
+        $notificacionesNoLeidas = Notificacion::de($usuario->credencial)
+            ->noLeidas()
+            ->count();
+
         return view('estudiante.home', [
             'usuario' => $usuario,
             'estudiante' => $estudiante,
@@ -139,6 +151,8 @@ class DashboardController extends Controller
             'riesgo' => $riesgo,
             'alertas' => $alertas,
             'gestionDocumental' => $this->gestionDocumental,
+            'notificaciones' => $notificaciones,
+            'notificacionesNoLeidas' => $notificacionesNoLeidas,
         ]);
     }
 

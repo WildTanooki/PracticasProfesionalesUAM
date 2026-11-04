@@ -7,6 +7,7 @@ use App\Models\Documento;
 use App\Models\DocumentoHistorial;
 use App\Models\Pasantia;
 use App\Services\GestionDocumentalService;
+use App\Services\NotificacionService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -15,7 +16,8 @@ use Illuminate\Validation\ValidationException;
 class DocumentoController extends Controller
 {
     public function __construct(
-        private GestionDocumentalService $gestionDocumental
+        private GestionDocumentalService $gestionDocumental,
+        private NotificacionService $notificaciones
     ) {
     }
 
@@ -158,6 +160,9 @@ class DocumentoController extends Controller
                 $consulta->where('cif', $credencial);
             })
             ->firstOrFail();
+
+        // Al consultar el documento, sus avisos quedan leídos.
+        $this->notificaciones->marcarLeidasDeDocumento($credencial, $documento->idDocumento);
 
         return view('estudiante.documentos-detalle', [
             'documento' => $documento,
