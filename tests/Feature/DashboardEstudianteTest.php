@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Notificacion;
 use App\Models\Usuario;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -335,5 +336,27 @@ class DashboardEstudianteTest extends TestCase
             ->assertSee('Aún no tienes una pasantía')
             ->assertSee('No tienes alertas')
             ->assertDontSee('Tu avance de prácticas');
+    }
+
+    public function test_muestra_las_notificaciones_de_documentos_en_el_encabezado(): void
+    {
+        Notificacion::create([
+            'credencial' => '21011890',
+            'idDocumento' => 2,
+            'nombreDocumento' => 'Reporte de horas',
+            'estadoDocumento' => 'A corregir',
+            'titulo' => 'Documento requiere corrección: Reporte de horas',
+            'mensaje' => 'Coordinación Académica revisó tu documento «Reporte de horas» (versión 1) y requiere corrección.',
+            'observacion' => 'Falta la firma del tutor.',
+            'fechaCreacion' => now(),
+        ]);
+
+        $respuesta = $this->actingAs($this->estudiante)->get(route('estudiante.home'));
+
+        $respuesta->assertOk();
+        $respuesta->assertSee('Notificaciones, 1 sin leer');
+        $respuesta->assertSee('Documento requiere corrección: Reporte de horas');
+        $respuesta->assertSee('Observación: Falta la firma del tutor.');
+        $respuesta->assertViewHas('notificacionesNoLeidas', 1);
     }
 }

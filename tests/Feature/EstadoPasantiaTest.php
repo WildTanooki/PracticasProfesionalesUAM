@@ -8,6 +8,7 @@ use App\Models\Pasantia;
 use App\Models\Usuario;
 use App\Services\EstadoPasantiaService;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -20,7 +21,25 @@ use Tests\TestCase;
  */
 class EstadoPasantiaTest extends TestCase
 {
+    // Las migraciones crean las tablas propias del sistema (notificaciones).
+    use RefreshDatabase;
+
     private EstadoPasantiaService $servicio;
+
+    /**
+     * Las migraciones usan la intercalación de MySQL utf8mb4_0900_ai_ci.
+     * Se registra en SQLite antes de migrar.
+     */
+    protected function beforeRefreshingDatabase(): void
+    {
+        $pdo = DB::connection()->getPdo();
+
+        $crear = method_exists($pdo, 'createCollation')
+            ? 'createCollation'
+            : 'sqliteCreateCollation';
+
+        $pdo->{$crear}('utf8mb4_0900_ai_ci', 'strcmp');
+    }
 
     protected function setUp(): void
     {
@@ -155,6 +174,15 @@ class EstadoPasantiaTest extends TestCase
         DB::table('plan_de_estudios')->insert(['idPlanEstudios' => 'Plan001', 'horasPorPractica' => 100, 'idCarrera' => 1]);
         DB::table('estudiante')->insert(['credencial' => '21011890', 'anioAcademico' => 2026, 'idPlanEstudios' => 'Plan001']);
         DB::table('coordinacion_academica')->insert(['idCoordinador' => 'COO0001', 'credencial' => 'COO0001', 'idCarrera' => 1]);
+
+        // El estudiante recibe la notificación cuando se revisa un documento.
+        Usuario::create([
+            'credencial' => '21011890',
+            'nombre' => 'Estudiante',
+            'correo' => 'est@prueba.com',
+            'contrasena' => 'secreto123',
+            'rol' => 'Estudiante',
+        ]);
 
         Usuario::create([
             'credencial' => 'COO0001',

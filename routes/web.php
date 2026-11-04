@@ -11,6 +11,7 @@ use App\Http\Controllers\Estudiante\CartaAprobacionController;
 use App\Http\Controllers\Estudiante\CartaRecomendacionController;
 use App\Http\Controllers\Estudiante\PasantiaController;
 use App\Http\Controllers\Estudiante\DocumentoController;
+use App\Http\Controllers\Estudiante\NotificacionController;
 use App\Http\Controllers\RegistroDeHorasController;
 
 use App\Http\Controllers\Coordinador\PasantiaCoordinadorController;
@@ -153,6 +154,22 @@ Route::middleware('auth')->group(function () {
     '/estudiante/documentos/versiones/{idHistorial}/descargar',
     [DocumentoController::class, 'descargar']
     )->name('estudiante.documentos.descargar');
+
+    // Notificaciones internas del estudiante
+    Route::get(
+    '/estudiante/notificaciones',
+    [NotificacionController::class, 'index']
+    )->name('estudiante.notificaciones');
+
+    Route::post(
+    '/estudiante/notificaciones/leer-todas',
+    [NotificacionController::class, 'marcarTodasLeidas']
+    )->name('estudiante.notificaciones.leer-todas');
+
+    Route::post(
+    '/estudiante/notificaciones/{idNotificacion}/abrir',
+    [NotificacionController::class, 'abrir']
+    )->whereNumber('idNotificacion')->name('estudiante.notificaciones.abrir');
 
     // Registrar horas como estudiante.
     Route::post(

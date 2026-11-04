@@ -68,6 +68,71 @@
                     </p>
                 </div>
 
+                <div class="flex items-center gap-2">
+
+                {{-- Notificaciones de documentos --}}
+                <div class="relative" x-data="{ abierto: false }" @click.outside="abierto = false">
+                    <button
+                        type="button"
+                        @click="abierto = !abierto"
+                        :aria-expanded="abierto.toString()"
+                        aria-haspopup="true"
+                        aria-label="Notificaciones{{ $notificacionesNoLeidas > 0 ? ', ' . $notificacionesNoLeidas . ' sin leer' : '' }}"
+                        class="relative flex h-10 w-10 items-center justify-center rounded-full text-slate-600 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-[#5b9eaa]"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
+                            <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
+                        </svg>
+                        @if ($notificacionesNoLeidas > 0)
+                            <span class="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[11px] font-bold text-white" aria-hidden="true">
+                                {{ $notificacionesNoLeidas > 99 ? '99+' : $notificacionesNoLeidas }}
+                            </span>
+                        @endif
+                    </button>
+
+                    <div
+                        x-show="abierto"
+                        x-cloak
+                        style="display: none;"
+                        class="absolute right-0 z-40 mt-2 w-80 overflow-hidden rounded-xl border border-slate-200 bg-white text-sm shadow-lg"
+                    >
+                        <p class="border-b border-slate-100 px-4 py-3 font-semibold text-slate-800">
+                            Notificaciones
+                        </p>
+
+                        @forelse ($notificaciones as $notificacion)
+                            <form action="{{ route('estudiante.notificaciones.abrir', $notificacion->idNotificacion) }}" method="POST">
+                                @csrf
+                                <button type="submit" class="block w-full border-b border-slate-100 px-4 py-3 text-left hover:bg-slate-50 {{ $notificacion->leida ? '' : 'bg-[#5b9eaa]/5' }}">
+                                    <span class="flex items-center gap-2 font-medium text-slate-800">
+                                        @unless ($notificacion->leida)
+                                            <span class="h-2 w-2 shrink-0 rounded-full bg-[#5b9eaa]" aria-hidden="true"></span>
+                                        @endunless
+                                        {{ $notificacion->titulo }}
+                                    </span>
+                                    @if ($notificacion->observacion)
+                                        <span class="mt-1 block truncate text-xs text-slate-500">
+                                            Observación: {{ $notificacion->observacion }}
+                                        </span>
+                                    @endif
+                                    <span class="mt-1 block text-xs text-slate-400">
+                                        {{ $notificacion->fechaCreacion?->format('d/m/Y H:i') }}
+                                    </span>
+                                </button>
+                            </form>
+                        @empty
+                            <p class="px-4 py-6 text-center text-xs text-slate-500">
+                                No tienes notificaciones.
+                            </p>
+                        @endforelse
+
+                        <a href="{{ route('estudiante.notificaciones') }}" class="block px-4 py-3 text-center text-sm font-semibold text-[#397783] hover:bg-slate-50">
+                            Ver todas
+                        </a>
+                    </div>
+                </div>
+
                 <div class="relative" x-data="{ abierto: false }" @click.outside="abierto = false">
                     <button
                         type="button"
@@ -106,6 +171,8 @@
                             </button>
                         </form>
                     </div>
+                </div>
+
                 </div>
             </header>
 

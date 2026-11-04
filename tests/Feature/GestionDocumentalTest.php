@@ -4,10 +4,12 @@ namespace Tests\Feature;
 
 use App\Models\Documento;
 use App\Models\DocumentoHistorial;
+use App\Models\Notificacion;
 use App\Models\Pasantia;
 use App\Models\Usuario;
 use App\Services\GestionDocumentalService;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -22,6 +24,9 @@ use Tests\TestCase;
  */
 class GestionDocumentalTest extends TestCase
 {
+    // Las migraciones crean las tablas propias del sistema (notificaciones).
+    use RefreshDatabase;
+
     private Usuario $estudiante;
 
     private Usuario $otroEstudiante;
@@ -29,6 +34,21 @@ class GestionDocumentalTest extends TestCase
     private Usuario $coordinador;
 
     private Usuario $coordinadorOtraCarrera;
+
+    /**
+     * Las migraciones usan la intercalación de MySQL utf8mb4_0900_ai_ci.
+     * Se registra en SQLite antes de migrar.
+     */
+    protected function beforeRefreshingDatabase(): void
+    {
+        $pdo = DB::connection()->getPdo();
+
+        $crear = method_exists($pdo, 'createCollation')
+            ? 'createCollation'
+            : 'sqliteCreateCollation';
+
+        $pdo->{$crear}('utf8mb4_0900_ai_ci', 'strcmp');
+    }
 
     protected function setUp(): void
     {
@@ -506,5 +526,163 @@ class GestionDocumentalTest extends TestCase
             ->assertSee('Guardar revisión')
             ->assertSee(route('coordinador.pasantias.documentos', $documento->idPasantia))
             ->assertDontSee('url()->previous()');
+    }
+
+    // ---------------------------------------------------------------
+    // Notificaciones internas al estudiante
+    // ---------------------------------------------------------------
+
+    public function test_la_revision_notifica_al_estudiante_con_documento_estado_y_observacion(): void
+    {
+        $this->actingAs($this->estudiante);
+        $this->enviar(1, 1);
+        $documento = Documento::sole();
+
+        $this->assertSame(0, Notificacion::count());
+
+        $this->actingAs($this->coordinador);
+        $this->revisar($documento->idDocumento, 1, 'A corregir', 'Falta la firma del tutor.')
+            ->assertSessionHasNoErrors();
+
+        $notificacion = Notificacion::sole();
+
+        $this->assertSame('21011890', $notificacion->credencial);
+        $this->assertSame($documento->idDocumento, $notificacion->idDocumento);
+        $this->assertSame(DocumentoHistorial::sole()->idHistorial, $notificacion->idHistorial);
+        $this->assertSame('Plan de trabajo', $notificacion->nombreDocumento);
+        $this->assertSame('A corregir', $notificacion->estadoDocumento);
+        $this->assertSame('Documento requiere corrección: Plan de trabajo', $notificacion->titulo);
+        $this->assertStringContainsString('«Plan de trabajo» (versión 1)', $notificacion->mensaje);
+        $this->assertSame('Falta la firma del tutor.', $notificacion->observacion);
+        $this->assertNull($notificacion->fechaLectura);
+    }
+
+    public function test_se_notifica_cada_decision_de_coordinacion(): void
+    {
+        $this->actingAs($this->estudiante);
+        $this->enviar(1, 1);
+        $this->enviar(1, 2);
+        [$plan, $informe] = Documento::orderBy('idDocumento')->get()->all();
+
+        $this->actingAs($this->coordinador);
+        $this->revisar($plan->idDocumento, 1, 'Aprobado');
+        $this->revisar($informe->idDocumento, 1, 'Rechazado', 'No corresponde al formato.');
+
+        $aprobado = Notificacion::where('idDocumento', $plan->idDocumento)->sole();
+        $this->assertSame('Aprobado', $aprobado->estadoDocumento);
+        $this->assertSame('Documento aprobado: Plan de trabajo', $aprobado->titulo);
+        $this->assertNull($aprobado->observacion);
+
+        $rechazado = Notificacion::where('idDocumento', $informe->idDocumento)->sole();
+        $this->assertSame('Rechazado', $rechazado->estadoDocumento);
+        $this->assertSame('Documento rechazado: Informe final', $rechazado->titulo);
+        $this->assertSame('No corresponde al formato.', $rechazado->observacion);
+    }
+
+    public function test_reenvio_y_nueva_revision_generan_otra_notificacion(): void
+    {
+        $this->actingAs($this->estudiante);
+        $this->enviar(1, 1);
+        $documento = Documento::sole();
+
+        $this->actingAs($this->coordinador);
+        $this->revisar($documento->idDocumento, 1, 'A corregir', 'Falta la firma.');
+
+        $this->actingAs($this->estudiante);
+        $this->enviar(1, 1, 'plan-corregido.pdf');
+
+        // Enviar no notifica: solo las decisiones de Coordinación Académica.
+        $this->assertSame(1, Notificacion::count());
+
+        $this->actingAs($this->coordinador);
+        $this->revisar($documento->idDocumento, 2, 'Aprobado');
+
+        $this->assertSame(['A corregir', 'Aprobado'], Notificacion::orderBy('idNotificacion')->pluck('estadoDocumento')->all());
+        $this->assertStringContainsString('(versión 2)', Notificacion::latest('idNotificacion')->first()->mensaje);
+    }
+
+    public function test_una_revision_invalida_no_genera_notificacion(): void
+    {
+        $this->actingAs($this->estudiante);
+        $this->enviar(1, 1);
+        $documento = Documento::sole();
+
+        $this->actingAs($this->coordinador);
+        $this->revisar($documento->idDocumento, 1, 'Rechazado')->assertSessionHasErrors('observacion');
+        $this->revisar($documento->idDocumento, 2, 'Aprobado')->assertSessionHasErrors('version');
+
+        $this->assertSame(0, Notificacion::count());
+    }
+
+    public function test_el_estudiante_ve_sus_notificaciones_y_el_contador_del_menu(): void
+    {
+        $this->actingAs($this->estudiante);
+        $this->enviar(1, 1);
+        $documento = Documento::sole();
+
+        $this->actingAs($this->coordinador);
+        $this->revisar($documento->idDocumento, 1, 'A corregir', 'Falta la firma del tutor.');
+
+        $this->actingAs($this->estudiante);
+        $this->get(route('estudiante.notificaciones'))
+            ->assertOk()
+            ->assertSee('Documento requiere corrección: Plan de trabajo')
+            ->assertSee('Requiere corrección')
+            ->assertSee('Falta la firma del tutor.')
+            ->assertSee('Marcar todas como leídas (1)')
+            ->assertSee('1 sin leer');
+
+        // Otro estudiante no ve notificaciones ajenas.
+        $this->actingAs($this->otroEstudiante);
+        $this->get(route('estudiante.notificaciones'))
+            ->assertOk()
+            ->assertDontSee('Plan de trabajo')
+            ->assertSee('No tienes notificaciones');
+    }
+
+    public function test_abrir_la_notificacion_la_marca_leida_y_lleva_al_documento(): void
+    {
+        $this->actingAs($this->estudiante);
+        $this->enviar(1, 1);
+        $documento = Documento::sole();
+
+        $this->actingAs($this->coordinador);
+        $this->revisar($documento->idDocumento, 1, 'Aprobado');
+        $notificacion = Notificacion::sole();
+
+        // Otro estudiante no puede abrirla.
+        $this->actingAs($this->otroEstudiante);
+        $this->post(route('estudiante.notificaciones.abrir', $notificacion->idNotificacion))
+            ->assertNotFound();
+        $this->assertNull($notificacion->fresh()->fechaLectura);
+
+        $this->actingAs($this->estudiante);
+        $this->post(route('estudiante.notificaciones.abrir', $notificacion->idNotificacion))
+            ->assertRedirect(route('estudiante.documentos.show', $documento->idDocumento));
+
+        $this->assertNotNull($notificacion->fresh()->fechaLectura);
+    }
+
+    public function test_ver_el_documento_o_marcar_todas_deja_las_notificaciones_leidas(): void
+    {
+        $this->actingAs($this->estudiante);
+        $this->enviar(1, 1);
+        $this->enviar(1, 2);
+        [$plan, $informe] = Documento::orderBy('idDocumento')->get()->all();
+
+        $this->actingAs($this->coordinador);
+        $this->revisar($plan->idDocumento, 1, 'Aprobado');
+        $this->revisar($informe->idDocumento, 1, 'A corregir', 'Corregir portada.');
+
+        $this->actingAs($this->estudiante);
+        $this->get(route('estudiante.documentos.show', $plan->idDocumento))->assertOk();
+
+        $this->assertNotNull(Notificacion::where('idDocumento', $plan->idDocumento)->sole()->fechaLectura);
+        $this->assertNull(Notificacion::where('idDocumento', $informe->idDocumento)->sole()->fechaLectura);
+
+        $this->post(route('estudiante.notificaciones.leer-todas'))
+            ->assertRedirect(route('estudiante.notificaciones'));
+
+        $this->assertSame(0, Notificacion::noLeidas()->count());
     }
 }
