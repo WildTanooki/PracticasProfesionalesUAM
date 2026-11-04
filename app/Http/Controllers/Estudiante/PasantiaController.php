@@ -10,6 +10,10 @@ class PasantiaController extends Controller
 {
     public function index(Request $request)
     {
+        $usuario = auth()->user();
+
+        abort_unless($usuario->rol === 'Estudiante', 403);
+
         $credencial = $request->user()->credencial;
 
         $pasantias = Pasantia::with('practicaProfesional')
