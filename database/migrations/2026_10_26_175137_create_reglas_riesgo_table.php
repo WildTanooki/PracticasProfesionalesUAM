@@ -22,10 +22,12 @@ return new class extends Migration
 
             // Coordinador que creó o administra la regla.
             // NULL permite reglas generales del sistema.
-            $table->string('idCoordinador', 30)
-            ->nullable()
-            ->charset('utf8mb4')
-            ->collation('utf8mb4_0900_ai_ci');
+            // En SQLite (pruebas) la intercalación de MySQL no existe.
+            $idCoordinador = $table->string('idCoordinador', 30)->nullable();
+
+            if (Schema::getConnection()->getDriverName() === 'mysql') {
+                $idCoordinador->charset('utf8mb4')->collation('utf8mb4_0900_ai_ci');
+            }
 
             $table->timestamps();
 

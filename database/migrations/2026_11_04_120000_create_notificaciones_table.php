@@ -19,9 +19,12 @@ return new class extends Migration
 
             // Usuario que recibe la notificación. Misma intercalación que
             // usuarios.credencial para poder crear la clave foránea.
-            $table->string('credencial', 30)
-                ->charset('utf8mb4')
-                ->collation('utf8mb4_0900_as_cs');
+            // En SQLite (pruebas) la intercalación de MySQL no existe.
+            $credencial = $table->string('credencial', 30);
+
+            if (Schema::getConnection()->getDriverName() === 'mysql') {
+                $credencial->charset('utf8mb4')->collation('utf8mb4_0900_as_cs');
+            }
 
             // Documento y versión revisados.
             $table->unsignedInteger('idDocumento');
