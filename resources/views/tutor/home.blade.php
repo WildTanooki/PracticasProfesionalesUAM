@@ -25,6 +25,9 @@
                     Panel
                     <span class="font-bold text-slate-800">de Tutor</span>
                 </span>
+                    <p class="mt-1 text-xs text-slate-400">
+                        Gestión y revisión de horas de prácticas profesionales
+                    </p>
             </header>
 
             <main class="mx-auto max-w-7xl px-5 py-6 sm:px-7">
