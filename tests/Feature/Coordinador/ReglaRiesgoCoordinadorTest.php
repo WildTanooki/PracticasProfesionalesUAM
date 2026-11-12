@@ -48,7 +48,7 @@ class ReglaRiesgoCoordinadorTest extends TestCase
             ? 'createCollation'
             : 'sqliteCreateCollation';
 
-        $pdo->{$crear}('utf8mb4_0900_ai_ci', 'strcmp');
+        $pdo->{$crear}('utf8mb4_0900_as_cs', 'strcmp');
     }
 
     private function crearEsquema(): void

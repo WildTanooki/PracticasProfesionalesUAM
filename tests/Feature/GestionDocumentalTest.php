@@ -47,7 +47,7 @@ class GestionDocumentalTest extends TestCase
             ? 'createCollation'
             : 'sqliteCreateCollation';
 
-        $pdo->{$crear}('utf8mb4_0900_ai_ci', 'strcmp');
+        $pdo->{$crear}('utf8mb4_0900_as_cs', 'strcmp');
     }
 
     protected function setUp(): void
@@ -445,6 +445,7 @@ class GestionDocumentalTest extends TestCase
 
     public function test_reenvio_tras_rechazo_sigue_la_configuracion(): void
     {
+        config(['documentos.permitir_reenvio_rechazado' => false]);
         $this->actingAs($this->estudiante);
         $this->enviar(1, 1);
         $documento = Documento::sole();

@@ -53,13 +53,4 @@ class CoordinacionAcademica extends Model
             'idCoordinador'
         );
     }
-
-    public function reglas(): HasMany
-    {
-        return $this->hasMany(
-            Regla::class,
-            'idCoordinador',
-            'idCoordinador'
-        );
-    }
 }
