@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class CartaAprobacion extends Model
 {
-    protected $table = 'CartaAprobacion';
+    protected $table = 'cartaaprobacion';
 
     protected $primaryKey = 'idCartaAprobacion';
 

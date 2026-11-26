@@ -10,7 +10,7 @@ class Usuario extends Authenticatable
 {
     use HasFactory;
 
-    protected $table = 'Usuarios';
+    protected $table = 'usuarios';
 
     protected $primaryKey = 'credencial';
 

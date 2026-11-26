@@ -11,7 +11,7 @@ class Formato extends Model
 {
     use HasFactory;
 
-    protected $table = 'Formatos';
+    protected $table = 'formatos';
 
     protected $primaryKey = 'idFormato';
 

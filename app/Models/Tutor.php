@@ -11,7 +11,7 @@ class Tutor extends Model
 {
     use HasFactory;
 
-    protected $table = 'Tutor';
+    protected $table = 'tutor';
 
     protected $primaryKey = 'idTutor';
 
