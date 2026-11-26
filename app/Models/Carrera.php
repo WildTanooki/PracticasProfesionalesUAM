@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Carrera extends Model
 {
-    protected $table = 'Carrera';
+    protected $table = 'carrera';
 
     protected $primaryKey = 'idCarrera';
 

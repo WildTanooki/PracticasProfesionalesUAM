@@ -11,7 +11,7 @@ class CoordinacionAcademica extends Model
 {
     use HasFactory;
 
-    protected $table = 'Coordinacion_Academica';
+    protected $table = 'coordinacion_academica';
 
     protected $primaryKey = 'idCoordinador';
 

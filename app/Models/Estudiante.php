@@ -11,7 +11,7 @@ class Estudiante extends Model
 {
     use HasFactory;
 
-    protected $table = 'Estudiante';
+    protected $table = 'estudiante';
 
     protected $primaryKey = 'estudianteID';
 

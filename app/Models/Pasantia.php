@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Pasantia extends Model
 {
-    protected $table = 'Pasantia';
+    protected $table = 'pasantia';
 
     protected $primaryKey = 'idPasantia';
 
